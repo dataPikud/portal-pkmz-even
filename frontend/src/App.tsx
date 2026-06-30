@@ -2,28 +2,28 @@ import './App.css'
 
 const systems = [
   {
-    name: 'Help Desk',
-    description: 'Open support tickets and follow internal requests.',
+    name: 'מוקד תמיכה',
+    description: 'פתיחת קריאות שירות ומעקב אחר בקשות פנים ארגוניות.',
     url: 'https://example.com/help-desk',
-    category: 'Operations',
+    category: 'תפעול',
   },
   {
-    name: 'HR Portal',
-    description: 'Time off, benefits, forms, and employee services.',
+    name: 'פורטל משאבי אנוש',
+    description: 'חופשות, הטבות, טפסים ושירותים לעובדים.',
     url: 'https://example.com/hr',
-    category: 'People',
+    category: 'אנשים',
   },
   {
-    name: 'Knowledge Base',
-    description: 'Policies, guides, procedures, and onboarding docs.',
+    name: 'מאגר ידע',
+    description: 'נהלים, מדריכים, תהליכים ומסמכי קליטה.',
     url: 'https://example.com/kb',
-    category: 'Knowledge',
+    category: 'ידע',
   },
   {
-    name: 'Finance',
-    description: 'Budgets, purchase requests, invoices, and reports.',
+    name: 'כספים',
+    description: 'תקציבים, בקשות רכש, חשבוניות ודוחות.',
     url: 'https://example.com/finance',
-    category: 'Business',
+    category: 'עסקי',
   },
 ]
 
@@ -32,29 +32,29 @@ function App() {
     <main className="portal-shell">
       <header className="portal-header">
         <div>
-          <p className="eyebrow">Organization Portal</p>
-          <h1>Start here for every internal system.</h1>
+          <p className="eyebrow">פורטל ארגוני</p>
+          <h1>נקודת הכניסה לכל המערכות הפנימיות.</h1>
           <p className="intro">
-            A single browser home page for core tools, services, and internal
-            information across the organization.
+            דף הבית הארגוני מרכז כלים מרכזיים, שירותים ומידע פנימי במקום אחד
+            נגיש וברור.
           </p>
         </div>
-        <div className="status-panel" aria-label="Portal status">
+        <div className="status-panel" aria-label="סטטוס הפורטל">
           <span className="status-dot" />
-          Portal online
+          הפורטל פעיל
         </div>
       </header>
 
-      <section className="quick-actions" aria-label="Quick actions">
-        <a href="https://example.com/announcements">Announcements</a>
-        <a href="https://example.com/directory">Directory</a>
-        <a href="https://example.com/status">System status</a>
+      <section className="quick-actions" aria-label="פעולות מהירות">
+        <a href="https://example.com/announcements">הודעות ועדכונים</a>
+        <a href="https://example.com/directory">ספר טלפונים</a>
+        <a href="https://example.com/status">סטטוס מערכות</a>
       </section>
 
       <section className="systems-section">
         <div className="section-heading">
-          <h2>Organization systems</h2>
-          <p>Replace these placeholders with real systems as the portal grows.</p>
+          <h2>מערכות הארגון</h2>
+          <p>בהמשך ניתן להחליף את הקישורים לדוגמא במערכות האמיתיות של הארגון.</p>
         </div>
         <div className="systems-grid">
           {systems.map((system) => (
