@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+
+# Prisma local database
+backend/prisma/*.db
+backend/prisma/*.db-journal
+backend/generated/
+backend/src/generated/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

@@ -1,0 +1,54 @@
+:root {
+  --accent: #0f766e;
+  --bg: #f7f8fa;
+  --border: #d9dee7;
+  --heading: #111827;
+  --muted: #5b6472;
+  --surface: #ffffff;
+  --text: #273142;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1 {
+  color: var(--heading);
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 0.95;
+  margin: 0 0 20px;
+  max-width: 820px;
+}
+
+h2 {
+  color: var(--heading);
+  font-size: 24px;
+  margin: 0;
+}
+
+h3,
+p {
+  margin: 0;
+}
+
+a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent), white 35%);
+  outline-offset: 3px;
+}
