@@ -1,0 +1,135 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 48px;
+  text-align: right;
+}
+
+/* כותרת */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  align-self: flex-start;
+}
+
+.backBtn:hover { color: var(--heading); }
+
+.title {
+  font-size: clamp(24px, 4vw, 40px);
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.badge {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* תת-קטגוריה */
+.subSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.subTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* גריד כרטיסים */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* כרטיס מערכת */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 150px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.cardName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0;
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+  flex: 1;
+}
+
+.cardBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.cardBtn:hover { text-decoration: underline; }
+
+/* misc */
+.empty    { color: var(--muted); font-size: 14px; }
+.errorMsg { color: #dc2626; font-size: 15px; }
+
+.skeletonPage {
+  height: 300px;
+  border-radius: 8px;
+  background: var(--border);
+}
+
+@media (max-width: 900px) {
+  .page { padding: 28px 18px; }
+  .cardsGrid { grid-template-columns: 1fr; }
+}

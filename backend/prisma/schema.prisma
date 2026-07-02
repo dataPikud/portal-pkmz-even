@@ -1,37 +1,95 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
-model SystemCategory {
-  id          Int          @id @default(autoincrement())
-  name        String
-  description String?
-  sortOrder   Int          @default(0)
-  links       SystemLink[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+// ===== משתמשים =====
+model User {
+  id           String   @id @default(cuid())
+  employeeId   String   @unique  // מזהה ארגוני (מה-SSO)
+  displayName  String
+  email        String   @unique
+  isAdmin      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  visits       UserVisit[]
+  contacts     ContactRequest[]
 }
 
-model SystemLink {
-  id          Int             @id @default(autoincrement())
+// ===== קטגוריות ראשיות (4 אייקון-כרטיסים בדף הבית) =====
+model MainCategory {
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
-  url         String
-  icon        String?
-  isActive    Boolean         @default(true)
-  sortOrder   Int             @default(0)
-  categoryId  Int?
-  category    SystemCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  icon        String?          // שם אייקון או emoji
+  color       String?          // צבע הקטגוריה (hex)
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subCategories SubCategory[]
+}
+
+// ===== קטגוריות משנה בתוך כל קטגוריה ראשית =====
+model SubCategory {
+  id             Int          @id @default(autoincrement())
+  name           String
+  description    String?
+  sortOrder      Int          @default(0)
+  isActive       Boolean      @default(true)
+  mainCategoryId Int
+  mainCategory   MainCategory @relation(fields: [mainCategoryId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  systems System[]
+}
+
+// ===== מערכות/אתרים =====
+model System {
+  id            Int          @id @default(autoincrement())
+  name          String
+  description   String?
+  url           String
+  imageUrl      String?      // תמונה/לוגו
+  isActive      Boolean      @default(true)
+  sortOrder     Int          @default(0)
+  subCategoryId Int?
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  visits        UserVisit[]
+}
+
+// ===== היסטוריית ביקורים של משתמשים =====
+model UserVisit {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  systemId  Int
+  system    System   @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  visitedAt DateTime @default(now())
+
+  @@index([userId, visitedAt])
+}
+
+// ===== פניות למנהל =====
+model ContactRequest {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  type        String   // "תקלה" | "רעיון" | "דיווח" | "אחר"
+  employeeId  String   // מזהה ארגוני
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status      String   @default("new") // "new" | "in_progress" | "resolved"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
