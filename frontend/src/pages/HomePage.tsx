@@ -55,10 +55,10 @@ export function HomePage() {
       {/* Hero */}
       <header className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>פורטל ארגוני</p>
-          <h1 className={styles.heroTitle}>נקודת הכניסה לכל המערכות הפנימיות.</h1>
+          <p className={styles.eyebrow}>פורטל פקמ"ז</p>
+          <h1 className={styles.heroTitle}>נקודת הכניסה לכל המערכות ברשת.</h1>
           <p className={styles.heroSub}>
-            דף הבית הארגוני מרכז כלים מרכזיים, שירותים ומידע פנימי במקום אחד נגיש וברור.
+            דף הבית של פקמ"ז מרכז כלים, שירותים ומידע, במקום אחד נגיש וברור.
           </p>
         </div>
         <div className={styles.statusPanel} aria-label="סטטוס הפורטל">
