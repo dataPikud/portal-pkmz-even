@@ -56,7 +56,7 @@ export function HomePage() {
       <header className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>פורטל פקמ"ז</p>
-          <h1 className={styles.heroTitle}>נקודת הכניסה לכל המערכות ברשת.</h1>
+          <h1 className={styles.heroTitle}>נקודת הכניסה לכל המערכות ברשת</h1>
           <p className={styles.heroSub}>
             דף הבית של פקמ"ז מרכז כלים, שירותים ומידע, במקום אחד נגיש וברור.
           </p>

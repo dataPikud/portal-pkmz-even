@@ -30,6 +30,44 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  isolation: isolate;
+}
+
+/* אריה ברקע - מצד שמאל, עד חצי המסך, שקיפות הדרגתית */
+.app-root::before {
+  content: '';
+  position: fixed;
+  bottom: -5vh;
+  left: 0;
+  width: 50vw;
+  height: 100vh;
+  background-image: url('/lion.png');
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  background-size: contain;
+
+  /* שקיפות כללית */
+  opacity: 0.15; 
+
+  /* גרדיאנט שעולה למעלה: האמצע כעת שקוף יותר */
+  -webkit-mask-image: linear-gradient(
+    to top,
+    transparent 0%,
+    transparent 10%,      /* למטה לגמרי שקוף */
+    rgba(0,0,0, 0.25) 45%, /* אזור האמצע שקוף הרבה יותר מקודם (היה 0.6) */
+    black 80%             /* רק לקראת החלק העליון הוא נהיה ברור לגמרי */
+  );
+  mask-image: linear-gradient(
+    to top,
+    transparent 0%,
+    transparent 10%,
+    rgba(0,0,0, 0.25) 45%,
+    black 80%
+  );
+
+  pointer-events: none;
+  z-index: -1;
 }
 
 h1, h2, h3, h4 { margin: 0; color: var(--heading); }
