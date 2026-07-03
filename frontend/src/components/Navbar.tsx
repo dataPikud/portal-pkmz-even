@@ -6,6 +6,8 @@ import { ThemeToggle } from './ThemeToggle';
 import { api } from '../lib/api';
 import type { System } from '../types';
 import styles from './Navbar.module.css';
+import pakmazLogo from '../assets/PakmazLogo.svg.png';
+import pakmazTikshuvLogo from '../assets/PakmazTikshuvLogo.svg.png';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -88,23 +90,30 @@ export function Navbar() {
 
   return (
     <nav className={styles.navbar} role="navigation" aria-label="ניווט ראשי">
-      {/* ימין: לוגו + שם */}
+      {user?.isAdmin && (
+        <button
+          className={styles.adminBtn}
+          onClick={() => navigate('/admin')}
+          aria-label="פאנל ניהול"
+        >
+          ניהול
+        </button>
+      )}
+
+      {/* ימין: ברכה + שם + תאריך/שעה */}
       <div className={styles.right}>
-        <a href="/" className={styles.brand} aria-label="עמוד הבית">
-          <div className={styles.logoBox} aria-hidden="true">
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="40" height="40" rx="10" fill="currentColor" />
-              <path d="M10 20 L20 10 L30 20 L20 30 Z" fill="white" opacity="0.9" />
-            </svg>
-          </div>
-          <div className={styles.logoBox} aria-hidden="true">
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="40" height="40" rx="10" fill="currentColor" opacity="0.75" />
-              <circle cx="20" cy="20" r="8" fill="white" opacity="0.9" />
-            </svg>
-          </div>
-        </a>
+        <div className={styles.greetingBlock}>
+          <span className={styles.greeting}>
+            {getGreeting()}
+            {user ? `, ${user.displayName}` : ''}
+          </span>
+          <span className={styles.datetime}>
+            {formatDate(now)} &nbsp;|&nbsp; {formatTime(now)}
+          </span>
+        </div>
+        <ThemeToggle />
       </div>
+
 
       {/* מרכז: חיפוש */}
       <div className={styles.center} ref={searchRef}>
@@ -159,27 +168,16 @@ export function Navbar() {
         )}
       </div>
 
-      {/* שמאל: ברכה + שם + תאריך/שעה */}
+      {/* שמאל: לוגו + שם */}
       <div className={styles.left}>
-        <ThemeToggle />
-        <div className={styles.greetingBlock}>
-          <span className={styles.greeting}>
-            {getGreeting()}
-            {user ? `, ${user.displayName}` : ''}
-          </span>
-          <span className={styles.datetime}>
-            {formatDate(now)} &nbsp;|&nbsp; {formatTime(now)}
-          </span>
-        </div>
-        {user?.isAdmin && (
-          <button
-            className={styles.adminBtn}
-            onClick={() => navigate('/admin')}
-            aria-label="פאנל ניהול"
-          >
-            ניהול
-          </button>
-        )}
+        <a href="/" className={styles.brand} aria-label="עמוד הבית">
+          <div className={styles.logoBox} aria-hidden="true">
+            <img className={styles.pakmazLogo} src={pakmazLogo} alt='pakmaz' />
+          </div>
+          <div className={styles.logoBox} aria-hidden="true">
+            <img className={styles.pakmazTikshuvLogo} src={pakmazTikshuvLogo} alt='pakmaz tikshuv' />
+          </div>
+        </a>
       </div>
     </nav>
   );

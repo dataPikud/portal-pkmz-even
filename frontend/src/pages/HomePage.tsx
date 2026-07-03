@@ -61,10 +61,10 @@ export function HomePage() {
             דף הבית של פקמ"ז מרכז כלים, שירותים ומידע, במקום אחד נגיש וברור.
           </p>
         </div>
-        <div className={styles.statusPanel} aria-label="סטטוס הפורטל">
+        {/* <div className={styles.statusPanel} aria-label="סטטוס הפורטל">
           <span className={styles.statusDot} />
           הפורטל פעיל
-        </div>
+        </div> */}
       </header>
 
       {/* גישה מהירה */}

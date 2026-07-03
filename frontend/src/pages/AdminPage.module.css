@@ -117,6 +117,35 @@
 .table tr:last-child td { border-bottom: none; }
 .table tr:hover td { background: var(--bg); }
 
+.nameWithThumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.tableThumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tableThumbPlaceholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
 .mutedCell { color: var(--muted); }
 
 .link {
@@ -159,6 +188,33 @@
   align-items: center;
 }
 
+.imageInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.uploadBtn {
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+}
+.uploadBtn:hover { color: var(--heading); border-color: var(--accent); }
+
+.thumbPreview {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--accent);
+}
+
 .inlineActions { display: flex; gap: 6px; }
 
 .saveBtn {
@@ -180,6 +236,56 @@
   display: flex;
   align-items: center;
   color: var(--muted);
+}
+
+/* Modal Image Upload */
+.imageUploadRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.fileUploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.fileUploadBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.previewBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.previewLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.modalImgPreview {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border);
 }
 
 /* Categories list */

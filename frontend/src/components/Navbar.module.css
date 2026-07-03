@@ -11,7 +11,7 @@
   height: 60px;
 }
 
-/* ימין - לוגו */
+/* שמאל - לוגו */
 .right {
   display: flex;
   align-items: center;
@@ -27,12 +27,21 @@
 }
 
 .logoBox {
-  width: 32px;
-  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--accent);
 }
 
-.logoBox svg { width: 100%; height: 100%; }
+.pakmazLogo {
+  width: 42px;
+  flex-shrink: 0; 
+}
+
+.pakmazTikshuvLogo {
+  width: 28px;
+  flex-shrink: 0;
+}
 
 /* מרכז - חיפוש */
 .center {
@@ -134,7 +143,7 @@
 .resultName { color: var(--heading); font-weight: 600; }
 .resultCat  { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
-/* שמאל - ברכה */
+/* ימין - ברכה */
 .left {
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ArrowRight, X, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowRight, X, Check, Upload, Image as ImageIcon } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
 import type { MainCategory, SubCategory, System } from '../types';
@@ -39,6 +39,8 @@ function SystemRow({
     subCategoryId: system.subCategoryId ?? '',
   });
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   function handleSave() {
     onSave(system.id, {
       name: form.name,
@@ -51,15 +53,47 @@ function SystemRow({
     setEditing(false);
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setForm(f => ({ ...f, imageUrl: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   if (editing) {
     return (
       <tr className={styles.editRow}>
-        <td colSpan={4}>
+        <td colSpan={5}>
           <div className={styles.inlineForm}>
             <input className={styles.input} placeholder="שם" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
             <input className={styles.input} placeholder="תיאור" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
             <input className={styles.input} placeholder="URL" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} />
-            <input className={styles.input} placeholder="תמונה URL" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} />
+            <div className={styles.imageInputWrap}>
+              <input className={styles.input} placeholder="תמונה URL" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} />
+              <button
+                type="button"
+                className={styles.uploadBtn}
+                onClick={() => fileInputRef.current?.click()}
+                title="העלאת קובץ תמונה"
+              >
+                <Upload size={14} />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
+            </div>
+            {form.imageUrl && (
+              <img src={form.imageUrl} alt="תצוגה מקדימה" className={styles.thumbPreview} />
+            )}
             <div className={styles.inlineActions}>
               <button className={styles.saveBtn} onClick={handleSave} aria-label="שמור"><Check size={14} /></button>
               <button className={styles.cancelBtn} onClick={() => setEditing(false)} aria-label="ביטול"><X size={14} /></button>
@@ -72,7 +106,18 @@ function SystemRow({
 
   return (
     <tr>
-      <td>{system.name}</td>
+      <td>
+        <div className={styles.nameWithThumb}>
+          {system.imageUrl ? (
+            <img src={system.imageUrl} alt={system.name} className={styles.tableThumb} />
+          ) : (
+            <div className={styles.tableThumbPlaceholder}>
+              <ImageIcon size={14} />
+            </div>
+          )}
+          <span>{system.name}</span>
+        </div>
+      </td>
       <td className={styles.mutedCell}>{system.description ?? '—'}</td>
       <td><a href={system.url} target="_blank" rel="noopener noreferrer" className={styles.link}>{system.url}</a></td>
       <td>
@@ -96,11 +141,24 @@ function AddSystemModal({
   onAdd: (data: SystemFormData) => void;
 }) {
   const [form, setForm] = useState<SystemFormData>(EMPTY_SYSTEM);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || !form.url.trim()) return;
     onAdd(form);
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setForm(f => ({ ...f, imageUrl: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   return (
@@ -120,9 +178,40 @@ function AddSystemModal({
           <label className={styles.label}>כתובת URL <span aria-hidden="true">*</span>
             <input required type="url" className={styles.input} value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} />
           </label>
-          <label className={styles.label}>תמונה (URL)
-            <input className={styles.input} value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} />
+          
+          <label className={styles.label}>תמונה למערכת (קובץ או כתובת URL)
+            <div className={styles.imageUploadRow}>
+              <input
+                className={styles.input}
+                placeholder="https://example.com/image.png או העלה קובץ"
+                value={form.imageUrl}
+                onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
+              />
+              <button
+                type="button"
+                className={styles.fileUploadBtn}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={15} />
+                העלאת קובץ
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
+            </div>
           </label>
+
+          {form.imageUrl && (
+            <div className={styles.previewBox}>
+              <span className={styles.previewLabel}>תצוגה מקדימה לתמונה:</span>
+              <img src={form.imageUrl} alt="תצוגה מקדימה" className={styles.modalImgPreview} />
+            </div>
+          )}
+
           <label className={styles.label}>קטגוריית משנה
             <select className={styles.input} value={form.subCategoryId} onChange={e => setForm(f => ({ ...f, subCategoryId: e.target.value === '' ? '' : Number(e.target.value) }))}>
               <option value="">ללא</option>
@@ -247,7 +336,7 @@ export function AdminPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>שם</th>
+                  <th>שם ומצב תמונה</th>
                   <th>תיאור</th>
                   <th>URL</th>
                   <th>פעולות</th>
