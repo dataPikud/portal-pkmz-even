@@ -1,17 +1,47 @@
+/* ===== Design Tokens ===== */
+:root[data-theme="light"] {
+  --accent:       #0f766e;
+  --accent-hover: #0d6660;
+  --bg:           #f7f8fa;
+  --border:       #d9dee7;
+  --heading:      #111827;
+  --muted:        #5b6472;
+  --surface:      #ffffff;
+  --text:         #273142;
+  --shadow:       rgba(0, 0, 0, 0.08);
+  
+  /* רקע אריה */
+  --lion-opacity: 0.5;
+  --lion-url:     url('/lion.png');
+}
+
+:root[data-theme="dark"] {
+  --accent:       #06b6d4;
+  --accent-hover: #0891b2;
+  --bg:           #0a0e1a;
+  --border:       #1e2538;
+  --heading:      #f1f5f9;
+  --muted:        #94a3b8;
+  --surface:      #0f1523;
+  --text:         #cbd5e1;
+  --shadow:       rgba(0, 0, 0, 0.5);
+  
+  /* רקע אריה כהה */
+  --lion-opacity: 0.15;
+  --lion-url:     url('/lion.jpg');
+}
+
 :root {
-  --accent:  #0f766e;
-  --bg:      #f7f8fa;
-  --border:  #d9dee7;
-  --heading: #111827;
-  --muted:   #5b6472;
-  --surface: #ffffff;
-  --text:    #273142;
-  --sans:    'Segoe UI', Arial, system-ui, sans-serif;
+  --sans: 'Segoe UI', Arial, system-ui, sans-serif;
+  color-scheme: light dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { direction: rtl; }
+html {
+  direction: rtl;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
 
 body {
   margin: 0;
@@ -22,6 +52,7 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   direction: rtl;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root { min-height: 100vh; }
@@ -34,43 +65,47 @@ body {
   isolation: isolate;
 }
 
-/* אריה ברקע - מצד שמאל, עד חצי המסך, שקיפות הדרגתית */
+/* אריה ברקע - דינמי לפי theme */
 .app-root::before {
   content: '';
   position: fixed;
-  bottom: -5vh;
+  bottom: 0;
   left: 0;
   width: 50vw;
   height: 100vh;
-  background-image: url('/lion.png');
+  background-image: var(--lion-url);
   background-repeat: no-repeat;
   background-position: bottom left;
   background-size: contain;
-
-  /* שקיפות כללית */
-  opacity: 0.15; 
-
-  /* גרדיאנט שעולה למעלה: האמצע כעת שקוף יותר */
+  
+  /* שקיפות הדרגתית */
   -webkit-mask-image: linear-gradient(
     to top,
     transparent 0%,
-    transparent 10%,      /* למטה לגמרי שקוף */
-    rgba(0,0,0, 0.25) 45%, /* אזור האמצע שקוף הרבה יותר מקודם (היה 0.6) */
-    black 80%             /* רק לקראת החלק העליון הוא נהיה ברור לגמרי */
+    rgba(0,0,0,0.15) 20%,
+    rgba(0,0,0,0.35) 50%,
+    rgba(0,0,0, var(--lion-opacity)) 100%
   );
   mask-image: linear-gradient(
     to top,
     transparent 0%,
-    transparent 10%,
-    rgba(0,0,0, 0.25) 45%,
-    black 80%
+    rgba(0,0,0,0.15) 20%,
+    rgba(0,0,0,0.35) 50%,
+    rgba(0,0,0, var(--lion-opacity)) 100%
   );
 
   pointer-events: none;
   z-index: -1;
+  opacity: 1;
+  transition: opacity 0.4s ease;
 }
 
-h1, h2, h3, h4 { margin: 0; color: var(--heading); }
+h1, h2, h3, h4 {
+  margin: 0;
+  color: var(--heading);
+  transition: color 0.3s ease;
+}
+
 p { margin: 0; }
 button { cursor: pointer; font-family: inherit; }
 a { color: inherit; }
@@ -79,4 +114,16 @@ a:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* אנימציות חלקות לכל אלמנטים שמשתנים בtheme */
+* {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* ביטול אנימציה על transform/opacity שלא קשורים לtheme */
+*:not(.theme-transition) {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { ThemeToggle } from './ThemeToggle';
 import { api } from '../lib/api';
 import type { System } from '../types';
 import styles from './Navbar.module.css';
@@ -160,6 +161,7 @@ export function Navbar() {
 
       {/* שמאל: ברכה + שם + תאריך/שעה */}
       <div className={styles.left}>
+        <ThemeToggle />
         <div className={styles.greetingBlock}>
           <span className={styles.greeting}>
             {getGreeting()}

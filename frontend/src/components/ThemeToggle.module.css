@@ -1,0 +1,35 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle:hover {
+  color: var(--heading);
+  border-color: var(--accent);
+  background: var(--bg);
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.icon {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: rotate(-20deg) scale(0.8); }
+  to   { opacity: 1; transform: rotate(0) scale(1); }
+}
