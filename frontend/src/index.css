@@ -9,6 +9,7 @@
   --surface:      #ffffff;
   --text:         #273142;
   --shadow:       rgba(0, 0, 0, 0.08);
+  --hover:        #f0f4f8;
   
   /* רקע אריה */
   --lion-opacity: 0.5;
@@ -25,6 +26,7 @@
   --surface:      #0f1523;
   --text:         #cbd5e1;
   --shadow:       rgba(0, 0, 0, 0.5);
+  --hover:        #161e2e;
   
   /* רקע אריה כהה */
   --lion-opacity: 0.15;

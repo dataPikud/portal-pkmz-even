@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, X } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Search, X, Film } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { ThemeToggle } from './ThemeToggle';
 import { api } from '../lib/api';
@@ -45,11 +45,16 @@ export function Navbar() {
   const user = useAuthStore((s) => s.user);
   const now = useClock();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<System[]>([]);
   const [open, setOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const isAdmin = user?.isAdmin ?? false;
+  const isContentAdmin = user?.isContentAdmin ?? false;
+  const canManage = isAdmin || isContentAdmin;
 
   // חיפוש debounced
   useEffect(() => {
@@ -90,15 +95,31 @@ export function Navbar() {
 
   return (
     <nav className={styles.navbar} role="navigation" aria-label="ניווט ראשי">
-      {user?.isAdmin && (
+      {/* כפתורי ניווט שמאל */}
+      <div className={styles.navActions}>
+        {/* קישור לחומרי הטמעה – גלוי לכולם */}
         <button
-          className={styles.adminBtn}
-          onClick={() => navigate('/admin')}
-          aria-label="פאנל ניהול"
+          className={`${styles.contentBtn} ${location.pathname === '/content' ? styles.contentBtnActive : ''}`}
+          onClick={() => navigate('/content')}
+          aria-label="חומרי הטמעה"
+          aria-current={location.pathname === '/content' ? 'page' : undefined}
         >
-          ניהול
+          <Film size={15} />
+          חומרי הטמעה
         </button>
-      )}
+
+        {/* כפתור ניהול – גלוי ל-isAdmin ו-isContentAdmin */}
+        {canManage && (
+          <button
+            className={`${styles.adminBtn} ${location.pathname === '/admin' ? styles.adminBtnActive : ''}`}
+            onClick={() => navigate('/admin')}
+            aria-label="פאנל ניהול"
+            aria-current={location.pathname === '/admin' ? 'page' : undefined}
+          >
+            ניהול
+          </button>
+        )}
+      </div>
 
       {/* ימין: ברכה + שם + תאריך/שעה */}
       <div className={styles.right}>

@@ -111,3 +111,43 @@ export const requireAdmin = (
 
   next();
 };
+
+/**
+ * Content Admin guard – לשימוש אחרי requireAuth
+ * מאפשר גישה למנהל תוכן (isContentAdmin) בלבד.
+ * למנהל מערכת רגיל (isAdmin) אין גישה כאן אוטומטית – השתמש ב-requireContentOrAdmin.
+ */
+export const requireContentAdmin = (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const user = res.locals["user"] as { isAdmin: boolean; isContentAdmin: boolean } | undefined;
+
+  if (!user?.isContentAdmin) {
+    res.status(403).json({ message: "אין הרשאת ניהול חומרי הטמעה" });
+    return;
+  }
+
+  next();
+};
+
+/**
+ * Content Or Admin guard – לשימוש אחרי requireAuth
+ * מאפשר גישה לכל מי שהוא isAdmin OR isContentAdmin.
+ * זהו ה-guard הנכון לנתיבי CRUD של וידאו.
+ */
+export const requireContentOrAdmin = (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const user = res.locals["user"] as { isAdmin: boolean; isContentAdmin: boolean } | undefined;
+
+  if (!user?.isAdmin && !user?.isContentAdmin) {
+    res.status(403).json({ message: "אין הרשאת גישה לניהול תוכן" });
+    return;
+  }
+
+  next();
+};

@@ -9,13 +9,14 @@ datasource db {
 
 // ===== משתמשים =====
 model User {
-  id           String   @id @default(cuid())
-  employeeId   String   @unique  // מזהה ארגוני (מה-SSO)
-  displayName  String
-  email        String   @unique
-  isAdmin      Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(cuid())
+  employeeId       String   @unique  // מזהה ארגוני (מה-SSO)
+  displayName      String
+  email            String   @unique
+  isAdmin          Boolean  @default(false)
+  isContentAdmin   Boolean  @default(false)  // הרשאת ניהול חומרי הטמעה
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   visits       UserVisit[]
   contacts     ContactRequest[]
@@ -92,4 +93,22 @@ model ContactRequest {
   status      String   @default("new") // "new" | "in_progress" | "resolved"
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ===== חומרי הטמעה – סרטונים =====
+model Video {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String?
+  fileName       String            // שם קובץ הוידאו בשרת (תחת uploads/videos/)
+  thumbnailName  String?           // שם קובץ תמונת thumbnail (תחת uploads/thumbnails/)
+  mimeType       String?           // לדוג׳ video/mp4
+  fileSize       BigInt?           // גודל בבייטים
+  duration       Float?            // אורך בשניות
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([sortOrder, createdAt])
 }

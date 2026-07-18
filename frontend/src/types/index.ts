@@ -4,6 +4,7 @@ export interface User {
   displayName: string;
   email: string;
   isAdmin: boolean;
+  isContentAdmin: boolean;
 }
 
 export interface MainCategory {
@@ -45,3 +46,53 @@ export interface ContactRequest {
   type: ContactType;
   employeeId: string;
 }
+
+// ===== חומרי הטמעה =====
+
+export interface Video {
+  id: number;
+  title: string;
+  description: string | null;
+  fileName: string;
+  thumbnailName: string | null;
+  mimeType: string | null;
+  fileSize: number | null;
+  duration: number | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+/** DTO for creating a video record (after file upload) */
+export interface CreateVideoDto {
+  title: string;
+  description?: string;
+  fileName: string;
+  thumbnailName?: string;
+  mimeType?: string;
+  fileSize?: number;
+  duration?: number;
+  sortOrder?: number;
+}
+
+/** DTO for updating video metadata */
+export interface UpdateVideoDto {
+  title?: string;
+  description?: string;
+  thumbnailName?: string | null;
+  duration?: number;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+/** Response from the file upload endpoint */
+export interface UploadVideoResponse {
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+}
+
+export interface UploadThumbnailResponse {
+  fileName: string;
+}
+

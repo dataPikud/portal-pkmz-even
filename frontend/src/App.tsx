@@ -5,6 +5,7 @@ import { ContactForm } from './components/ContactForm';
 import { HomePage } from './pages/HomePage';
 import { CategoryPage } from './pages/CategoryPage';
 import { AdminPage } from './pages/AdminPage';
+import { ContentPage } from './pages/ContentPage';
 import { useAuthStore } from './store/useAuthStore';
 import { api } from './lib/api';
 import type { User } from './types';
@@ -52,6 +53,7 @@ function AppShell() {
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:id" element={<CategoryPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/content" element={<ContentPage />} />
       </Routes>
       <ContactForm />
     </div>
