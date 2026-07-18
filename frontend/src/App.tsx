@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Navbar } from './components/Navbar';
+import { NeuralNetworkBackground } from './components/NeuralNetworkBackground';
 import { ContactForm } from './components/ContactForm';
 import { HomePage } from './pages/HomePage';
 import { CategoryPage } from './pages/CategoryPage';
@@ -48,7 +48,7 @@ function AppShell() {
 
   return (
     <div className="app-root">
-      <Navbar />
+      <NeuralNetworkBackground />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:id" element={<CategoryPage />} />

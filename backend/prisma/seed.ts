@@ -8,7 +8,7 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("🌱 Seeding database with new design categories & notifications...");
 
   // Admin user
   await prisma.user.upsert({
@@ -34,54 +34,43 @@ async function main() {
     },
   });
 
-  // ===== 4 קטגוריות ראשיות =====
+  // Clear existing items to start fresh
+  await prisma.system.deleteMany();
+  await prisma.subCategory.deleteMany();
+  await prisma.mainCategory.deleteMany();
+  await prisma.video.deleteMany();
+  await prisma.notification.deleteMany();
+
+  // ===== 3 קטגוריות ראשיות (לפי העיצוב החדש) =====
   const cats = await Promise.all([
-    prisma.mainCategory.upsert({
-      where: { id: 1 },
-      update: {},
-      create: {
+    prisma.mainCategory.create({
+      data: {
         id: 1,
-        name: "תפעול ותמיכה",
-        description: "מוקדי שירות, ניהול תקלות וכלי תפעול יומיומי",
-        icon: "wrench",
-        color: "#0f766e",
+        name: "דשבורדים",
+        description: "סקירות, נתונים ומדדים",
+        icon: "bar-chart-2",
+        color: "#3b82f6",
         sortOrder: 1,
       },
     }),
-    prisma.mainCategory.upsert({
-      where: { id: 2 },
-      update: {},
-      create: {
+    prisma.mainCategory.create({
+      data: {
         id: 2,
-        name: "משאבי אנוש",
-        description: "שירותי עובדים, חופשות, הטבות וטפסים",
-        icon: "users",
-        color: "#7c3aed",
+        name: "מערכות תפעול",
+        description: "מערכות ושירותים תפעוליים",
+        icon: "settings",
+        color: "#10b981",
         sortOrder: 2,
       },
     }),
-    prisma.mainCategory.upsert({
-      where: { id: 3 },
-      update: {},
-      create: {
+    prisma.mainCategory.create({
+      data: {
         id: 3,
-        name: "ידע ומידע",
-        description: "נהלים, מסמכים, מדריכים ובסיסי ידע",
-        icon: "book-open",
-        color: "#b45309",
+        name: "אפליקציות ברשת",
+        description: "אפליקציות ושירותים ברשת",
+        icon: "globe",
+        color: "#f59e0b",
         sortOrder: 3,
-      },
-    }),
-    prisma.mainCategory.upsert({
-      where: { id: 4 },
-      update: {},
-      create: {
-        id: 4,
-        name: "עסקים ופיננסים",
-        description: "תקציבים, רכש, חשבוניות ודוחות",
-        icon: "chart-bar",
-        color: "#0369a1",
-        sortOrder: 4,
       },
     }),
   ]);
@@ -89,37 +78,65 @@ async function main() {
   console.log(`✅ Created ${cats.length} main categories`);
 
   // ===== קטגוריות משנה =====
-  const ops1 = await prisma.subCategory.upsert({ where: { id: 1 }, update: {}, create: { id: 1, name: "מוקד תמיכה",       sortOrder: 1, mainCategoryId: 1 } });
-  const ops2 = await prisma.subCategory.upsert({ where: { id: 2 }, update: {}, create: { id: 2, name: "ניטור ותשתיות",    sortOrder: 2, mainCategoryId: 1 } });
-  const hr1  = await prisma.subCategory.upsert({ where: { id: 3 }, update: {}, create: { id: 3, name: "שירותי עובדים",    sortOrder: 1, mainCategoryId: 2 } });
-  const hr2  = await prisma.subCategory.upsert({ where: { id: 4 }, update: {}, create: { id: 4, name: "גיוס והשמה",       sortOrder: 2, mainCategoryId: 2 } });
-  const kb1  = await prisma.subCategory.upsert({ where: { id: 5 }, update: {}, create: { id: 5, name: "נהלים ומסמכים",    sortOrder: 1, mainCategoryId: 3 } });
-  const biz1 = await prisma.subCategory.upsert({ where: { id: 6 }, update: {}, create: { id: 6, name: "פיננסים",          sortOrder: 1, mainCategoryId: 4 } });
-  const biz2 = await prisma.subCategory.upsert({ where: { id: 7 }, update: {}, create: { id: 7, name: "רכש ולוגיסטיקה",  sortOrder: 2, mainCategoryId: 4 } });
+  const subDash = await prisma.subCategory.create({ data: { id: 1, name: "דשבורדים מרכזיים", sortOrder: 1, mainCategoryId: 1 } });
+  const subOps = await prisma.subCategory.create({ data: { id: 2, name: "מערכות תפעוליות", sortOrder: 1, mainCategoryId: 2 } });
+  const subNet = await prisma.subCategory.create({ data: { id: 3, name: "אפליקציות רשת", sortOrder: 1, mainCategoryId: 3 } });
 
   console.log("✅ Created sub-categories");
 
   // ===== מערכות =====
   const systems = [
-    { id:  1, name: "מוקד תמיכה",     description: "פתיחת קריאות שירות ומעקב אחר בקשות",   url: "https://example.com/helpdesk",     subCategoryId: ops1.id, sortOrder: 1 },
-    { id:  2, name: "ניהול אירועים",  description: "ניטור ותגובה לאירועי IT",                url: "https://example.com/incidents",    subCategoryId: ops1.id, sortOrder: 2 },
-    { id:  3, name: "ניטור שרתים",    description: "לוח בקרה לביצועי תשתית",                url: "https://example.com/monitoring",   subCategoryId: ops2.id, sortOrder: 1 },
-    { id:  4, name: "ניהול גישות",    description: "הרשאות, VPN ואבטחת מידע",               url: "https://example.com/access",       subCategoryId: ops2.id, sortOrder: 2 },
-    { id:  5, name: "פורטל עובדים",   description: "חופשות, הטבות, תלושי שכר",              url: "https://example.com/hr",           subCategoryId: hr1.id,  sortOrder: 1 },
-    { id:  6, name: "לוח זמנים",      description: "שעות עבודה, משמרות ונוכחות",            url: "https://example.com/schedule",     subCategoryId: hr1.id,  sortOrder: 2 },
-    { id:  7, name: "מערכת גיוס",     description: "פרסום משרות ומעקב מועמדים",             url: "https://example.com/recruit",      subCategoryId: hr2.id,  sortOrder: 1 },
-    { id:  8, name: "מאגר ידע",       description: "נהלים, מדריכים ותהליכי עבודה",          url: "https://example.com/kb",           subCategoryId: kb1.id,  sortOrder: 1 },
-    { id:  9, name: "ספריית מסמכים",  description: "חוזים, הסכמים ומסמכים רשמיים",         url: "https://example.com/docs",         subCategoryId: kb1.id,  sortOrder: 2 },
-    { id: 10, name: "מערכת כספים",    description: "תקציבים, תשלומים ודוחות כספיים",        url: "https://example.com/finance",      subCategoryId: biz1.id, sortOrder: 1 },
-    { id: 11, name: "דוחות BI",       description: "מחוונים ונתוני עסק בזמן אמת",           url: "https://example.com/bi",           subCategoryId: biz1.id, sortOrder: 2 },
-    { id: 12, name: "ניהול רכש",      description: "בקשות רכישה ואישורים",                  url: "https://example.com/procurement",  subCategoryId: biz2.id, sortOrder: 1 },
+    // דשבורדים (Category 1)
+    { name: "דשבורד מבצעים", description: "נתונים מבצעיים ואינטגרטיביים בזמן אמת", url: "https://example.com/ops-dashboard", subCategoryId: subDash.id, sortOrder: 1 },
+    { name: "דשבורד כוח אדם", description: "סטטיסטיקות כ\"א, מצבות וחתכים ניהוליים", url: "https://example.com/hr-dashboard", subCategoryId: subDash.id, sortOrder: 2 },
+    { name: "דשבורד מודיעין", description: "ריכוז נתוני איסוף ומטרות פיקודי", url: "https://example.com/intel-dashboard", subCategoryId: subDash.id, sortOrder: 3 },
+    { name: "דשבורד לוגיסטיקה", description: "מצב מלאי, רכש ותנועת שיירות", url: "https://example.com/logistics-dashboard", subCategoryId: subDash.id, sortOrder: 4 },
+    { name: "דשבורד אימונים", description: "גרפי התקדמות ומוכנות יחידות", url: "https://example.com/training-dashboard", subCategoryId: subDash.id, sortOrder: 5 },
+
+    // מערכות תפעול (Category 2)
+    { name: "מערכת תבל\"ל", description: "מערכת תכנון, בקרה ולוגיסטיקה פיקודית", url: "https://example.com/tablal", subCategoryId: subOps.id, sortOrder: 1 },
+    { name: "מערכת כוח אדם", description: "ניהול משאבי אנוש וסבבי תפקידים", url: "https://example.com/hr-system", subCategoryId: subOps.id, sortOrder: 2 },
+    { name: "מערכת לוגיסטיקה", description: "מעקב וניהול שרשרת אספקה ומשלוחים", url: "https://example.com/logistics-system", subCategoryId: subOps.id, sortOrder: 3 },
+    { name: "מערכת מודיעין", description: "ניהול מטרות ומידע מודיעיני פיקודי", url: "https://example.com/intel-system", subCategoryId: subOps.id, sortOrder: 4 },
+    { name: "מערכת אימונים", description: "תכנון, מעקב וניהול אימונים יחידתיים", url: "https://example.com/training-system", subCategoryId: subOps.id, sortOrder: 5 },
+
+    // אפליקציות ברשת (Category 3)
+    { name: "דואר ארגוני", description: "גישה לתיבת הדואר האלקטרוני הארגונית", url: "https://example.com/mail", subCategoryId: subNet.id, sortOrder: 1 },
+    { name: "פורטל שירות עצמי", description: "מידע אישי, טפסים דיגיטליים ושירותי פרט", url: "https://example.com/self-service", subCategoryId: subNet.id, sortOrder: 2 },
+    { name: "מערכת ישיבות", description: "שירות ישיבות וידאו ושיחות ועידה ברשת", url: "https://example.com/meetings", subCategoryId: subNet.id, sortOrder: 3 },
+    { name: "SharePoint", description: "אתרי שיתוף תוכן, מסמכים ומידע צוותי", url: "https://example.com/sharepoint", subCategoryId: subNet.id, sortOrder: 4 },
+    { name: "מערכת דוחות", description: "מערכת דוחות וניתוח נתונים ארגונית", url: "https://example.com/reports", subCategoryId: subNet.id, sortOrder: 5 },
   ];
 
   for (const s of systems) {
-    await prisma.system.upsert({ where: { id: s.id }, update: {}, create: s });
+    await prisma.system.create({ data: s });
   }
-
   console.log(`✅ Created ${systems.length} systems`);
+
+  // ===== סרטוני הדרכה =====
+  const videos = [
+    { title: "סרטון הדרכה לפורטל פקמ\"ז החדש", description: "הכרת ממשק המשתמש המשודרג, הניווט החדש והפעולות הנפוצות בפורטל.", fileName: "portal-intro.mp4", duration: 135, sortOrder: 1 },
+    { title: "מדריך לשימוש במערכת תבל\"ל", description: "שיעור וידאו מפורט על הזנת נתונים, הפקת דוחות ותכנון לוגיסטי במערכת תבל\"ל.", fileName: "tablal-guide.mp4", duration: 324, sortOrder: 2 },
+    { title: "מערכת ישיבות - טיפים וטריקים", description: "כיצד ליצור שיחת ועידה, לשתף מסך ולנהל משתתפים ביעילות.", fileName: "meetings-tips.mp4", duration: 92, sortOrder: 3 },
+  ];
+
+  for (const v of videos) {
+    await prisma.video.create({ data: v });
+  }
+  console.log(`✅ Created ${videos.length} training videos`);
+
+  // ===== הודעות מערכת =====
+  const notifications = [
+    { title: "ברוכים הבאים לפורטל פקמ\"ז המשודרג!", message: "הפורטל שודרג לעיצוב כהה ומודרני הכולל גישה מהירה יותר, מערכת התראות מובנית ותפריט ניווט מהיר." },
+    { title: "תחזוקה מתוכננת במערכת תבל\"ל", message: "ביום שלישי הקרוב, ה-21 ביולי, בין השעות 22:00 ל-24:00 תבוצע שדרוג תשתיות במערכת תבל\"ל. הגישה למערכת לא תתאפשר בזמן זה." },
+    { title: "סרטוני הדרכה חדשים עלו לאתר", message: "הועלו סרטוני הדרכה חדשים בנושאי תכנון ישיבות וידאו ושימוש מתקדם ב-SharePoint במדור חומרי הטמעה." },
+  ];
+
+  for (const n of notifications) {
+    await prisma.notification.create({ data: n });
+  }
+  console.log(`✅ Created ${notifications.length} system notifications`);
+
   console.log("🎉 Seed complete!");
 }
 

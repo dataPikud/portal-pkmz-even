@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ArrowRight, X, Check, Upload, Image as ImageIcon, Search, ChevronDown, ChevronUp, Film, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, Upload, Image as ImageIcon, Search, ChevronDown, ChevronUp, Film, Eye, EyeOff } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
-import type { MainCategory, SubCategory, System, Video, UpdateVideoDto } from '../types';
+import { Sidebar } from '../components/Sidebar';
+import { Navbar } from '../components/Navbar';
+import type { MainCategory, SubCategory, System, Video, UpdateVideoDto, SystemNotification } from '../types';
 import { thumbnailUrl, videoUrl } from './ContentPage';
 import styles from './AdminPage.module.css';
 
@@ -756,10 +758,12 @@ export function AdminPage() {
   const [systems, setSystems] = useState<System[]>([]);
   const [allSubs, setAllSubs] = useState<SubCategory[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddSystem, setShowAddSystem] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showAddNotification, setShowAddNotification] = useState(false);
 
   // isContentAdmin sees only the content tab; isAdmin sees all
   const isAdmin = user?.isAdmin ?? false;
@@ -767,10 +771,11 @@ export function AdminPage() {
   const canManageContent = isAdmin || isContentAdmin;
 
   const defaultTab = isAdmin ? 'systems' : 'content';
-  const [activeTab, setActiveTab] = useState<'systems' | 'categories' | 'content'>(defaultTab as 'systems' | 'categories' | 'content');
+  const [activeTab, setActiveTab] = useState<'systems' | 'categories' | 'content' | 'notifications'>(defaultTab as any);
   const [searchSystems, setSearchSystems] = useState('');
   const [searchCategories, setSearchCategories] = useState('');
   const [searchVideos, setSearchVideos] = useState('');
+  const [searchNotifications, setSearchNotifications] = useState('');
 
   // Filtered lists
   const filteredSystems = useMemo(() => {
@@ -801,6 +806,15 @@ export function AdminPage() {
     );
   }, [videos, searchVideos]);
 
+  const filteredNotifications = useMemo(() => {
+    const q = searchNotifications.trim().toLowerCase();
+    if (!q) return notifications;
+    return notifications.filter(n =>
+      n.title.toLowerCase().includes(q) ||
+      n.message.toLowerCase().includes(q)
+    );
+  }, [notifications, searchNotifications]);
+
   // Redirect users with no management permissions at all
   useEffect(() => {
     if (user && !user.isAdmin && !user.isContentAdmin) navigate('/');
@@ -813,6 +827,7 @@ export function AdminPage() {
       promises.push(
         api.mainCategories.list(),
         api.systems.list(),
+        api.notifications.list(),
       );
     }
 
@@ -825,8 +840,10 @@ export function AdminPage() {
       if (isAdmin) {
         const cats = results[idx++] as MainCategory[];
         const sysList = results[idx++] as System[];
+        const notifList = results[idx++] as SystemNotification[];
         setCategories(cats);
         setSystems(sysList);
+        setNotifications(notifList);
         setAllSubs(cats.flatMap(c => c.subCategories ?? []));
       }
       if (canManageContent) {
@@ -859,6 +876,19 @@ export function AdminPage() {
     });
     setSystems(prev => [...prev, created]);
     setShowAddSystem(false);
+  }
+
+  // --- Notification handlers ---
+  async function handleDeleteNotification(id: number) {
+    if (!confirm('למחוק את הודעת המערכת?')) return;
+    await api.notifications.delete(id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }
+
+  async function handleAddNotification(title: string, message: string) {
+    const created = await api.notifications.create({ title, message });
+    setNotifications(prev => [created, ...prev]);
+    setShowAddNotification(false);
   }
 
   // --- Category handlers ---
@@ -934,51 +964,66 @@ export function AdminPage() {
     setAllSubs(prev => prev.filter(s => s.id !== subId));
   }
 
-  if (loading) return <main className={styles.page}><p>טוען...</p></main>;
+  if (loading) {
+    return (
+      <div className={styles.layoutContainer}>
+        <Sidebar />
+        <div className={styles.contentArea}>
+          <div style={{ padding: 40, color: 'var(--muted)', textAlign: 'right' }}>טוען...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.pageHeader}>
-        <button className={styles.backBtn} onClick={() => navigate('/')} aria-label="חזרה">
-          <ArrowRight size={16} />
-          חזרה לפורטל
-        </button>
-        <h1 className={styles.title}>פאנל ניהול</h1>
-      </div>
-
-      <div className={styles.tabs} role="tablist">
-        {isAdmin && (
-          <button
-            role="tab"
-            aria-selected={activeTab === 'systems'}
-            className={activeTab === 'systems' ? styles.tabActive : styles.tab}
-            onClick={() => setActiveTab('systems')}
-          >
-            מערכות ({systems.length})
-          </button>
-        )}
-        {isAdmin && (
-          <button
-            role="tab"
-            aria-selected={activeTab === 'categories'}
-            className={activeTab === 'categories' ? styles.tabActive : styles.tab}
-            onClick={() => setActiveTab('categories')}
-          >
-            קטגוריות ({categories.length})
-          </button>
-        )}
-        {canManageContent && (
-          <button
-            role="tab"
-            aria-selected={activeTab === 'content'}
-            className={activeTab === 'content' ? styles.tabActive : styles.tab}
-            onClick={() => setActiveTab('content')}
-          >
-            <Film size={14} style={{ display: 'inline', marginLeft: 6 }} />
-            חומרי הטמעה ({videos.length})
-          </button>
-        )}
-      </div>
+    <div className={styles.layoutContainer}>
+      <Sidebar />
+      <div className={styles.contentArea}>
+        <Navbar breadcrumbs={[{ label: 'פאנל ניהול' }]} />
+        <main className={styles.page}>
+          <div className={styles.tabs} role="tablist">
+            {isAdmin && (
+              <button
+                role="tab"
+                aria-selected={activeTab === 'systems'}
+                className={activeTab === 'systems' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('systems')}
+              >
+                מערכות ({systems.length})
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                role="tab"
+                aria-selected={activeTab === 'categories'}
+                className={activeTab === 'categories' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('categories')}
+              >
+                קטגוריות ({categories.length})
+              </button>
+            )}
+            {canManageContent && (
+              <button
+                role="tab"
+                aria-selected={activeTab === 'content'}
+                className={activeTab === 'content' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('content')}
+              >
+                <Film size={14} style={{ display: 'inline', marginLeft: 6 }} />
+                חומרי הטמעה ({videos.length})
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                role="tab"
+                aria-selected={activeTab === 'notifications'}
+                className={activeTab === 'notifications' ? styles.tabActive : styles.tab}
+                onClick={() => setActiveTab('notifications')}
+              >
+                הודעות מערכת ({notifications.length})
+              </button>
+            )}
+          </div>
 
       {/* ===== Systems tab ===== */}
       {activeTab === 'systems' && (
@@ -1160,6 +1205,70 @@ export function AdminPage() {
         </section>
       )}
 
+      {/* ===== Notifications tab ===== */}
+      {activeTab === 'notifications' && (
+        <section aria-label="ניהול הודעות מערכת">
+          <div className={styles.sectionBar}>
+            <h2 className={styles.sectionTitle}>הודעות מערכת</h2>
+            <button className={styles.addBtn} onClick={() => setShowAddNotification(true)}>
+              <Plus size={16} />
+              הוסף הודעה
+            </button>
+          </div>
+          <div className={styles.searchBar}>
+            <Search size={15} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              type="search"
+              placeholder="חיפוש לפי כותרת או תוכן..."
+              value={searchNotifications}
+              onChange={e => setSearchNotifications(e.target.value)}
+              aria-label="חיפוש הודעות"
+            />
+            {searchNotifications && (
+              <button className={styles.searchClear} onClick={() => setSearchNotifications('')} aria-label="נקה חיפוש">
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>כותרת</th>
+                  <th>תוכן ההודעה</th>
+                  <th>תאריך יצירה</th>
+                  <th>פעולות</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredNotifications.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className={styles.emptyRow}>
+                      {searchNotifications ? `לא נמצאו תוצאות עבור "${searchNotifications}"` : 'אין הודעות מערכת'}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredNotifications.map(n => (
+                    <tr key={n.id}>
+                      <td style={{ fontWeight: 600 }}>{n.title}</td>
+                      <td className={styles.mutedCell}>{n.message}</td>
+                      <td>{new Date(n.createdAt).toLocaleString('he-IL')}</td>
+                      <td>
+                        <div className={styles.rowActions}>
+                          <button className={styles.deleteBtn} onClick={() => { void handleDeleteNotification(n.id); }} aria-label="מחיקה"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {/* ===== Modals ===== */}
       {showAddSystem && (
         <AddSystemModal
@@ -1174,6 +1283,56 @@ export function AdminPage() {
           onAdd={data => { void handleAddCategory(data); }}
         />
       )}
+      {showAddNotification && (
+        <AddNotificationModal
+          onClose={() => setShowAddNotification(false)}
+          onAdd={(title, message) => { void handleAddNotification(title, message); }}
+        />
+      )}
     </main>
+  </div>
+</div>
   );
 }
+
+// ===== Add Notification Modal =====
+function AddNotificationModal({
+  onClose,
+  onAdd,
+}: {
+  onClose: () => void;
+  onAdd: (title: string, message: string) => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !message.trim()) return;
+    onAdd(title, message);
+  }
+
+  return (
+    <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="הוספת הודעת מערכת">
+      <div className={styles.modal}>
+        <div className={styles.modalHeader}>
+          <h3>הוספת הודעת מערכת</h3>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="סגור"><X size={18} /></button>
+        </div>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <label className={styles.label}>כותרת <span aria-hidden="true">*</span>
+            <input required className={styles.input} value={title} onChange={e => setTitle(e.target.value)} />
+          </label>
+          <label className={styles.label}>תוכן ההודעה <span aria-hidden="true">*</span>
+            <textarea required className={styles.input} rows={4} value={message} onChange={e => setMessage(e.target.value)} />
+          </label>
+          <div className={styles.modalFooter}>
+            <button type="submit" className={styles.submitBtn}>הוסף הודעה</button>
+            <button type="button" className={styles.cancelOutlineBtn} onClick={onClose}>ביטול</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+

@@ -1,9 +1,11 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Play, Share2, Clock, Film } from 'lucide-react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Play, Share2, Film, Star, Clock } from 'lucide-react';
 import { api } from '../lib/api';
-import type { Video } from '../types';
+import { useAuthStore } from '../store/useAuthStore';
+import { Sidebar } from '../components/Sidebar';
+import { Navbar } from '../components/Navbar';
 import { VideoModal } from '../components/VideoModal';
+import type { Video } from '../types';
 import styles from './ContentPage.module.css';
 
 /** Format seconds → mm:ss or hh:mm:ss */
@@ -16,7 +18,6 @@ function formatDuration(secs: number | null | undefined): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-/** Build the URL for a video or thumbnail served from the backend */
 export function videoUrl(fileName: string): string {
   return `/uploads/videos/${encodeURIComponent(fileName)}`;
 }
@@ -25,17 +26,22 @@ export function thumbnailUrl(fileName: string): string {
   return `/uploads/thumbnails/${encodeURIComponent(fileName)}`;
 }
 
-// ===== Video Card =====
+// ===== Video Card Redesigned to match SystemCard =====
 function VideoCard({
   video,
   onPlay,
+  isFav,
+  onToggleFav,
 }: {
   video: Video;
   onPlay: (video: Video) => void;
+  isFav: boolean;
+  onToggleFav: (id: number) => void;
 }) {
   const duration = formatDuration(video.duration);
 
-  function handleShare() {
+  function handleShare(e: React.MouseEvent) {
+    e.stopPropagation();
     const url = `${window.location.origin}/content?v=${video.id}`;
     if (navigator.share) {
       void navigator.share({ title: video.title, url });
@@ -46,85 +52,125 @@ function VideoCard({
     }
   }
 
+  function handleToggleStar(e: React.MouseEvent) {
+    e.stopPropagation();
+    onToggleFav(video.id);
+  }
+
   return (
-    <article className={styles.card} aria-label={video.title}>
-      {/* Thumbnail / placeholder */}
-      <div className={styles.thumb} onClick={() => onPlay(video)}>
+    <article
+      className={`${styles.card} ${isFav ? styles.cardFav : ''}`}
+      onClick={() => onPlay(video)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPlay(video);
+        }
+      }}
+      aria-label={`הפעל סרטון: ${video.title}`}
+    >
+      {/* Star button on top-right */}
+      <button
+        type="button"
+        className={`${styles.starBtn} ${isFav ? styles.starFavActive : ''}`}
+        onClick={handleToggleStar}
+        title={isFav ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+        aria-label={isFav ? `הסר את ${video.title} ממועדפים` : `הוסף את ${video.title} למועדפים`}
+      >
+        <Star size={18} fill={isFav ? 'currentColor' : 'none'} />
+      </button>
+
+      {/* Share button on top-left */}
+      <button
+        type="button"
+        className={styles.shareBtn}
+        onClick={handleShare}
+        title="שתף סרטון"
+        aria-label="שתף סרטון"
+      >
+        <Share2 size={16} />
+      </button>
+
+      {/* Glass circular container with video thumbnail/icon & play overlay */}
+      <div className={styles.imageContainer}>
         {video.thumbnailName ? (
           <img
             src={thumbnailUrl(video.thumbnailName)}
             alt={video.title}
-            className={styles.thumbImg}
+            className={styles.systemImg}
             loading="lazy"
           />
         ) : (
-          <div className={styles.thumbPlaceholder}>
-            <Film size={36} />
-          </div>
+          <Film size={26} color="#8b5cf6" aria-hidden="true" />
         )}
-
-        {/* Overlay play button */}
+        
+        {/* Play Overlay indicator */}
         <div className={styles.playOverlay} aria-hidden="true">
-          <div className={styles.playCircle}>
-            <Play size={22} fill="currentColor" />
-          </div>
+          <Play size={18} fill="currentColor" />
         </div>
-
-        {/* Duration badge */}
-        {duration && (
-          <span className={styles.durationBadge}>
-            <Clock size={11} />
-            {duration}
-          </span>
-        )}
       </div>
 
-      {/* Info */}
-      <div className={styles.cardBody}>
-        <h3 className={styles.cardTitle} onClick={() => onPlay(video)}>
-          {video.title}
-        </h3>
-        {video.description && (
-          <p className={styles.cardDesc}>{video.description}</p>
-        )}
-      </div>
+      {/* Video Details */}
+      <h3 className={styles.cardName}>{video.title}</h3>
+      {video.description && (
+        <p className={styles.cardDesc}>{video.description}</p>
+      )}
 
-      {/* Actions */}
-      <div className={styles.cardActions}>
-        <button
-          className={styles.playBtn}
-          onClick={() => onPlay(video)}
-          aria-label={`הפעל: ${video.title}`}
-        >
-          <Play size={14} fill="currentColor" />
-          הפעל
-        </button>
-        <button
-          className={styles.shareBtn}
-          onClick={handleShare}
-          aria-label={`שתף: ${video.title}`}
-        >
-          <Share2 size={14} />
-        </button>
-      </div>
+      {/* Duration Badge */}
+      {duration && (
+        <span className={styles.durationBadge}>
+          <Clock size={11} />
+          {duration}
+        </span>
+      )}
     </article>
   );
 }
 
 // ===== Main ContentPage =====
 export function ContentPage() {
-  const navigate = useNavigate();
+  const user = useAuthStore(s => s.user);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeVideo, setActiveVideo] = useState<Video | null>(null);
 
+  // Search query state
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Favorites state for videos
+  const [videoFavs, setVideoFavs] = useState<number[]>([]);
+  const favStorageKey = `portal-video-favorites-${user?.employeeId || 'guest'}`;
+
+  // Load video favorites
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(favStorageKey);
+      if (stored) setVideoFavs(JSON.parse(stored) as number[]);
+    } catch {
+      // ignore
+    }
+  }, [favStorageKey]);
+
+  function handleToggleFav(id: number) {
+    const exists = videoFavs.includes(id);
+    const updated = exists ? videoFavs.filter(fid => fid !== id) : [...videoFavs, id];
+    setVideoFavs(updated);
+    localStorage.setItem(favStorageKey, JSON.stringify(updated));
+  }
+
+  // Fetch videos list
   useEffect(() => {
     void api.videos.list()
-      .then(list => { setVideos(list); setLoading(false); })
+      .then(list => {
+        setVideos(list);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
-  // Support deep-link: /content?v=<id>
+  // Handle deep link /content?v=<id>
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('v');
@@ -136,56 +182,71 @@ export function ContentPage() {
 
   const handleClose = useCallback(() => {
     setActiveVideo(null);
-    // Clean up URL param without navigation
     const url = new URL(window.location.href);
     url.searchParams.delete('v');
     window.history.replaceState({}, '', url.toString());
   }, []);
 
+  // Filtered list of videos based on search
+  const filteredVideos = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return videos;
+    return videos.filter(
+      v =>
+        v.title.toLowerCase().includes(q) ||
+        (v.description ?? '').toLowerCase().includes(q)
+    );
+  }, [videos, searchQuery]);
+
   return (
-    <main className={styles.page}>
-      {/* Header */}
-      <div className={styles.pageHeader}>
-        <button className={styles.backBtn} onClick={() => navigate('/')} aria-label="חזרה">
-          <ArrowRight size={16} />
-          חזרה לפורטל
-        </button>
-        <div className={styles.titleRow}>
-          <Film size={28} className={styles.titleIcon} />
-          <h1 className={styles.title}>חומרי הטמעה</h1>
-        </div>
-        <p className={styles.subtitle}>סרטוני הדרכה וחומרי לימוד</p>
+    <div className={styles.layoutContainer}>
+      {/* Right Sidebar */}
+      <Sidebar />
+
+      <div className={styles.contentArea}>
+        {/* Navbar with breadcrumbs and live search */}
+        <Navbar
+          breadcrumbs={[{ label: 'חומרי הטמעה' }]}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="חיפוש סרטון הדרכה..."
+        />
+
+        {/* Main Content Grid */}
+        <main className={styles.mainContent}>
+          {loading ? (
+            <div className={styles.loaderWrapper}>
+              <span style={{ color: 'var(--muted)' }}>טוען סרטונים...</span>
+            </div>
+          ) : filteredVideos.length === 0 ? (
+            <div className={styles.empty}>
+              <Film size={36} className={styles.emptyIcon} />
+              <p>לא נמצאו סרטוני הדרכה מתאימים</p>
+            </div>
+          ) : (
+            <div className={styles.cardsGrid}>
+              {filteredVideos.map(video => (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  onPlay={v => setActiveVideo(v)}
+                  isFav={videoFavs.includes(video.id)}
+                  onToggleFav={handleToggleFav}
+                />
+              ))}
+            </div>
+          )}
+        </main>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div className={styles.loading}>
-          <span>טוען...</span>
-        </div>
-      ) : videos.length === 0 ? (
-        <div className={styles.empty}>
-          <Film size={48} className={styles.emptyIcon} />
-          <p>אין סרטונים עדיין</p>
-        </div>
-      ) : (
-        <div className={styles.grid}>
-          {videos.map(video => (
-            <VideoCard
-              key={video.id}
-              video={video}
-              onPlay={v => setActiveVideo(v)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Video modal */}
+      {/* Video Modal popup player */}
       {activeVideo && (
         <VideoModal
           video={activeVideo}
           onClose={handleClose}
         />
       )}
-    </main>
+    </div>
   );
 }
+

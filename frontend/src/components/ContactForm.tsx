@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquarePlus, X, Send, CheckCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
@@ -39,6 +39,13 @@ export function ContactForm() {
     });
     setOpen(true);
   }
+
+  useEffect(() => {
+    const handleOpenEvent = () => handleOpen();
+    window.addEventListener('open-contact-form', handleOpenEvent);
+    return () => window.removeEventListener('open-contact-form', handleOpenEvent);
+  }, [user]);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

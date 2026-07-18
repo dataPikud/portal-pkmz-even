@@ -1,222 +1,345 @@
 .navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 48px;
-  height: 60px;
+  padding: 16px 32px;
+  background: rgba(8, 12, 24, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  z-index: 50;
+  width: 100%;
+  position: relative;
+  direction: rtl;
 }
 
-/* שמאל - לוגו */
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.brand {
+/* Breadcrumbs */
+.breadcrumbs {
   display: flex;
   align-items: center;
   gap: 8px;
-  text-decoration: none;
+  color: var(--muted);
+  font-size: 14px;
 }
 
-.logoBox {
+.homeBtn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.homeBtn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.crumbWrapper {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--accent);
 }
 
-.pakmazLogo {
-  width: 42px;
-  flex-shrink: 0; 
+.separator {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
 }
 
-.pakmazTikshuvLogo {
-  width: 28px;
-  flex-shrink: 0;
+.crumbLink {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s;
 }
 
-/* מרכז - חיפוש */
-.center {
-  flex: 1;
-  max-width: 480px;
-  margin: 0 auto;
+.crumbLink:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.crumbActive {
+  color: #fff;
+  font-weight: 600;
+  padding: 2px 6px;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dropdownContainer {
   position: relative;
 }
 
+/* Search Box */
 .searchWrap {
   position: relative;
-  display: flex;
-  align-items: center;
+  width: 240px;
 }
 
 .searchIcon {
   position: absolute;
-  right: 10px;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
   color: var(--muted);
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
-  height: 36px;
-  padding: 0 34px 0 30px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
+  padding: 8px 36px 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #fff;
   font-family: inherit;
-  direction: rtl;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  outline: none;
 }
 
 .searchInput:focus {
-  outline: none;
-  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.25);
 }
 
-.searchInput::-webkit-search-cancel-button { display: none; }
-
-.clearBtn {
-  position: absolute;
-  left: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--muted);
-  padding: 2px;
-  display: flex;
-  align-items: center;
-}
-
-.clearBtn:hover { color: var(--text); }
-
-.dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  left: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  list-style: none;
-  margin: 0;
-  padding: 4px;
-  max-height: 300px;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
-}
-
-.noResults {
-  padding: 10px 12px;
-  color: var(--muted);
-  font-size: 14px;
-  text-align: center;
-}
-
-.resultItem {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 12px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-  direction: rtl;
-  text-align: right;
-}
-
-.resultItem:hover { background: var(--bg); }
-
-.resultName { color: var(--heading); font-weight: 600; }
-.resultCat  { color: var(--muted); font-size: 12px; white-space: nowrap; }
-
-/* ימין - ברכה */
-.left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-  margin-right: auto;
-}
-
-.greetingBlock {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
-}
-
-.greeting {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--heading);
-  white-space: nowrap;
-}
-
-.datetime {
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.adminBtn {
-  padding: 5px 12px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-.adminBtn:hover { opacity: .85; }
-.adminBtnActive { opacity: 0.75; }
-
-/* Nav actions group */
-.navActions {
+/* Action Buttons */
+.actionBtn {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* Content (חומרי הטמעה) nav button */
-.contentBtn {
-  display: inline-flex;
+.actionBtn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.actionBtnActive {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Badge for notifications */
+.bellIconWrap {
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
+  justify-content: center;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+/* User Profile Button */
+.userProfileBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  color: var(--text);
   font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.userProfileBtn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.username {
+  font-weight: 600;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userChevron {
+  color: var(--muted);
+}
+
+/* Dropdown Menus */
+.filterMenu,
+.userMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  overflow: hidden;
+  animation: slideDown 0.15s ease-out;
+}
+
+.filterMenu {
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+}
+
+.filterItem {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  text-align: right;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.15s;
 }
-.contentBtn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+
+.filterItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
 }
-.contentBtnActive {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+
+.filterItemActive {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
+  font-weight: 600;
+}
+
+/* User Menu */
+.userMenu {
+  width: 220px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menuHeader {
+  padding: 4px 6px;
+}
+
+.userFullname {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 2px;
+}
+
+.userEmail {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+
+.userRole {
+  font-size: 11px;
+  color: #3b82f6;
+  font-weight: 600;
+  margin: 0;
+}
+
+.menuDivider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 4px 0;
+}
+
+.menuItem {
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: right;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.menuItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 16px;
+  }
+  .searchWrap {
+    width: 140px;
+  }
+  .username {
+    display: none;
+  }
 }

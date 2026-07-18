@@ -112,3 +112,12 @@ model Video {
 
   @@index([sortOrder, createdAt])
 }
+
+// ===== הודעות מערכת =====
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String
+  createdAt DateTime @default(now())
+}
+

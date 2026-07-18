@@ -2,6 +2,7 @@ import type {
   ContactRequest, MainCategory, SubCategory, System,
   Video, CreateVideoDto, UpdateVideoDto,
   UploadVideoResponse, UploadThumbnailResponse,
+  SystemNotification,
 } from '../types';
 
 const BASE = '/api';
@@ -103,6 +104,13 @@ export const api = {
 
   contact: {
     send: (data: ContactRequest) => post('/contact', data),
+  },
+
+  // ===== Notifications =====
+  notifications: {
+    list: () => get<SystemNotification[]>('/notifications'),
+    create: (data: { title: string; message: string }) => post<SystemNotification>('/notifications', data),
+    delete: (id: number) => del(`/notifications/${id}`),
   },
 
   // ===== Videos =====

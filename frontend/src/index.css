@@ -1,41 +1,21 @@
 /* ===== Design Tokens ===== */
-:root[data-theme="light"] {
-  --accent:       #0f766e;
-  --accent-hover: #0d6660;
-  --bg:           #f7f8fa;
-  --border:       #d9dee7;
-  --heading:      #111827;
-  --muted:        #5b6472;
-  --surface:      #ffffff;
-  --text:         #273142;
-  --shadow:       rgba(0, 0, 0, 0.08);
-  --hover:        #f0f4f8;
-  
-  /* רקע אריה */
-  --lion-opacity: 0.5;
-  --lion-url:     url('/lion.png');
-}
-
-:root[data-theme="dark"] {
-  --accent:       #06b6d4;
-  --accent-hover: #0891b2;
-  --bg:           #0a0e1a;
-  --border:       #1e2538;
-  --heading:      #f1f5f9;
-  --muted:        #94a3b8;
-  --surface:      #0f1523;
+:root {
+  --accent:       #3b82f6; /* Modern cyber blue */
+  --accent-hover: #2563eb;
+  --bg:           #030712; /* Deep dark cyber background */
+  --border:       rgba(255, 255, 255, 0.08);
+  --heading:      #f9fafb;
+  --muted:        #9ca3af;
+  --surface:      rgba(17, 24, 39, 0.5); /* Glassmorphic transparent surface */
   --text:         #cbd5e1;
   --shadow:       rgba(0, 0, 0, 0.5);
-  --hover:        #161e2e;
+  --hover:        rgba(255, 255, 255, 0.06);
   
-  /* רקע אריה כהה */
-  --lion-opacity: 0.15;
-  --lion-url:     url('/lion.jpg');
-}
-
-:root {
+  /* רקע אריה */
+  --lion-opacity: 0.35;
+  --lion-url:     url('/lion.png');
   --sans: 'Segoe UI', Arial, system-ui, sans-serif;
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -67,33 +47,31 @@ body {
   isolation: isolate;
 }
 
-/* אריה ברקע - דינמי לפי theme */
+/* אריה ברקע - מיושר לימין */
 .app-root::before {
   content: '';
   position: fixed;
   bottom: 0;
-  left: 0;
-  width: 50vw;
+  right: 0;
+  width: 45vw;
   height: 100vh;
   background-image: var(--lion-url);
   background-repeat: no-repeat;
-  background-position: bottom left;
+  background-position: bottom right;
   background-size: contain;
   
-  /* שקיפות הדרגתית */
+  /* שקיפות הדרגתית לצד שמאל */
   -webkit-mask-image: linear-gradient(
-    to top,
-    transparent 0%,
-    rgba(0,0,0,0.15) 20%,
-    rgba(0,0,0,0.35) 50%,
-    rgba(0,0,0, var(--lion-opacity)) 100%
+    to left,
+    rgba(0,0,0, var(--lion-opacity)) 0%,
+    rgba(0,0,0, calc(var(--lion-opacity) * 0.4)) 50%,
+    transparent 100%
   );
   mask-image: linear-gradient(
-    to top,
-    transparent 0%,
-    rgba(0,0,0,0.15) 20%,
-    rgba(0,0,0,0.35) 50%,
-    rgba(0,0,0, var(--lion-opacity)) 100%
+    to left,
+    rgba(0,0,0, var(--lion-opacity)) 0%,
+    rgba(0,0,0, calc(var(--lion-opacity) * 0.4)) 50%,
+    transparent 100%
   );
 
   pointer-events: none;
@@ -101,6 +79,7 @@ body {
   opacity: 1;
   transition: opacity 0.4s ease;
 }
+
 
 h1, h2, h3, h4 {
   margin: 0;

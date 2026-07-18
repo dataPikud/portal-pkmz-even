@@ -1,204 +1,211 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, X, Film } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, Bell, User, ChevronDown, Home } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { ThemeToggle } from './ThemeToggle';
-import { api } from '../lib/api';
-import type { System } from '../types';
+import { NotificationsDropdown } from './NotificationsDropdown';
 import styles from './Navbar.module.css';
-import pakmazLogo from '../assets/PakmazLogo.svg.png';
-import pakmazTikshuvLogo from '../assets/PakmazTikshuvLogo.svg.png';
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'בוקר טוב';
-  if (hour >= 12 && hour < 17) return 'צהריים טובים';
-  if (hour >= 17 && hour < 21) return 'ערב טוב';
-  return 'לילה טוב';
+interface Breadcrumb {
+  label: string;
+  path?: string;
 }
 
-function useClock() {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
+interface NavbarProps {
+  breadcrumbs: Breadcrumb[];
+  
+  // Optional search bindings
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  searchPlaceholder?: string;
+
+  // Optional filter bindings
+  filterOptions?: { id: number | string; name: string }[];
+  selectedFilterId?: number | string | null;
+  onFilterSelect?: (id: number | string | null) => void;
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('he-IL', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('he-IL', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-export function Navbar() {
+export function Navbar({
+  breadcrumbs,
+  searchQuery,
+  onSearchChange,
+  searchPlaceholder = 'חיפוש...',
+  filterOptions = [],
+  selectedFilterId = null,
+  onFilterSelect,
+}: NavbarProps) {
   const user = useAuthStore((s) => s.user);
-  const now = useClock();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<System[]>([]);
-  const [open, setOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  const isAdmin = user?.isAdmin ?? false;
-  const isContentAdmin = user?.isContentAdmin ?? false;
-  const canManage = isAdmin || isContentAdmin;
+  const filterRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // חיפוש debounced
+  // Close menus on click outside
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      setOpen(false);
-      return;
-    }
-    const id = setTimeout(async () => {
-      try {
-        const data = await api.systems.search(query);
-        setResults(data);
-        setOpen(true);
-      } catch {
-        // ignore
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilterMenu(false);
       }
-    }, 300);
-    return () => clearTimeout(id);
-  }, [query]);
-
-  // סגירה בלחיצה מחוץ
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setOpen(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  function handleSystemClick(system: System) {
-    void api.visits.record(system.id);
-    window.open(system.url, '_blank', 'noopener,noreferrer');
-    setQuery('');
-    setOpen(false);
-  }
-
   return (
-    <nav className={styles.navbar} role="navigation" aria-label="ניווט ראשי">
-      {/* כפתורי ניווט שמאל */}
-      <div className={styles.navActions}>
-        {/* קישור לחומרי הטמעה – גלוי לכולם */}
+    <nav className={styles.navbar} role="navigation" aria-label="ניווט עליון">
+      {/* שמאל: Breadcrumbs */}
+      <div className={styles.breadcrumbs}>
         <button
-          className={`${styles.contentBtn} ${location.pathname === '/content' ? styles.contentBtnActive : ''}`}
-          onClick={() => navigate('/content')}
-          aria-label="חומרי הטמעה"
-          aria-current={location.pathname === '/content' ? 'page' : undefined}
+          className={styles.homeBtn}
+          onClick={() => navigate('/')}
+          aria-label="עמוד הבית"
         >
-          <Film size={15} />
-          חומרי הטמעה
+          <Home size={18} />
         </button>
+        {breadcrumbs.map((crumb, idx) => (
+          <div key={idx} className={styles.crumbWrapper}>
+            <span className={styles.separator}>&gt;</span>
+            {crumb.path ? (
+              <button
+                className={styles.crumbLink}
+                onClick={() => navigate(crumb.path!)}
+              >
+                {crumb.label}
+              </button>
+            ) : (
+              <span className={styles.crumbActive}>{crumb.label}</span>
+            )}
+          </div>
+        ))}
+      </div>
 
-        {/* כפתור ניהול – גלוי ל-isAdmin ו-isContentAdmin */}
-        {canManage && (
-          <button
-            className={`${styles.adminBtn} ${location.pathname === '/admin' ? styles.adminBtnActive : ''}`}
-            onClick={() => navigate('/admin')}
-            aria-label="פאנל ניהול"
-            aria-current={location.pathname === '/admin' ? 'page' : undefined}
-          >
-            ניהול
-          </button>
+      {/* ימין: חיפוש, סינון, התראות, פרופיל */}
+      <div className={styles.actions}>
+        {/* חיפוש */}
+        {onSearchChange !== undefined && (
+          <div className={styles.searchWrap}>
+            <Search size={16} className={styles.searchIcon} />
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder={searchPlaceholder}
+              value={searchQuery ?? ''}
+              onChange={(e) => onSearchChange(e.target.value)}
+              aria-label="חיפוש"
+            />
+          </div>
         )}
-      </div>
 
-      {/* ימין: ברכה + שם + תאריך/שעה */}
-      <div className={styles.right}>
-        <div className={styles.greetingBlock}>
-          <span className={styles.greeting}>
-            {getGreeting()}
-            {user ? `, ${user.displayName}` : ''}
-          </span>
-          <span className={styles.datetime}>
-            {formatDate(now)} &nbsp;|&nbsp; {formatTime(now)}
-          </span>
-        </div>
-        <ThemeToggle />
-      </div>
-
-
-      {/* מרכז: חיפוש */}
-      <div className={styles.center} ref={searchRef}>
-        <div className={styles.searchWrap}>
-          <Search size={16} className={styles.searchIcon} aria-hidden="true" />
-          <input
-            className={styles.searchInput}
-            type="search"
-            placeholder="חיפוש מערכות..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label="חיפוש מערכות"
-            aria-expanded={open}
-            aria-haspopup="listbox"
-            autoComplete="off"
-          />
-          {query && (
+        {/* סינון */}
+        {onFilterSelect !== undefined && filterOptions.length > 0 && (
+          <div className={styles.dropdownContainer} ref={filterRef}>
             <button
-              className={styles.clearBtn}
-              onClick={() => { setQuery(''); setOpen(false); }}
-              aria-label="נקה חיפוש"
+              className={`${styles.actionBtn} ${showFilterMenu || selectedFilterId !== null ? styles.actionBtnActive : ''}`}
+              onClick={() => setShowFilterMenu(!showFilterMenu)}
+              aria-label="סינון"
             >
-              <X size={14} />
+              <Filter size={16} />
+              <span>סינון</span>
             </button>
+
+            {showFilterMenu && (
+              <div className={styles.filterMenu}>
+                <button
+                  className={`${styles.filterItem} ${selectedFilterId === null ? styles.filterItemActive : ''}`}
+                  onClick={() => {
+                    onFilterSelect(null);
+                    setShowFilterMenu(false);
+                  }}
+                >
+                  הכל
+                </button>
+                {filterOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    className={`${styles.filterItem} ${selectedFilterId === opt.id ? styles.filterItemActive : ''}`}
+                    onClick={() => {
+                      onFilterSelect(opt.id);
+                      setShowFilterMenu(false);
+                    }}
+                  >
+                    {opt.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* פעמון התראות */}
+        <div className={styles.dropdownContainer}>
+          <button
+            className={`${styles.actionBtn} ${showNotifications ? styles.actionBtnActive : ''}`}
+            onClick={() => setShowNotifications(!showNotifications)}
+            aria-label="התראות"
+          >
+            <div className={styles.bellIconWrap}>
+              <Bell size={18} />
+              {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+            </div>
+          </button>
+
+          {showNotifications && (
+            <NotificationsDropdown
+              onClose={() => setShowNotifications(false)}
+              onUnreadCountChange={setUnreadCount}
+            />
           )}
         </div>
 
-        {open && (
-          <ul className={styles.dropdown} role="listbox" aria-label="תוצאות חיפוש">
-            {results.length === 0 ? (
-              <li className={styles.noResults} role="option" aria-selected="false">
-                לא נמצאו תוצאות
-              </li>
-            ) : (
-              results.map((sys) => (
-                <li key={sys.id} role="option" aria-selected="false">
-                  <button
-                    className={styles.resultItem}
-                    onClick={() => handleSystemClick(sys)}
-                  >
-                    <span className={styles.resultName}>{sys.name}</span>
-                    {sys.subCategory?.mainCategory && (
-                      <span className={styles.resultCat}>
-                        {sys.subCategory.mainCategory.name}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        )}
-      </div>
+        {/* פרופיל משתמש */}
+        <div className={styles.dropdownContainer} ref={userMenuRef}>
+          <button
+            className={styles.userProfileBtn}
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            aria-label="תפריט משתמש"
+          >
+            <div className={styles.avatar}>
+              <User size={16} />
+            </div>
+            <span className={styles.username}>
+              שלום, {user?.displayName || 'משתמש'}
+            </span>
+            <ChevronDown size={14} className={styles.userChevron} />
+          </button>
 
-      {/* שמאל: לוגו + שם */}
-      <div className={styles.left}>
-        <a href="/" className={styles.brand} aria-label="עמוד הבית">
-          <div className={styles.logoBox} aria-hidden="true">
-            <img className={styles.pakmazLogo} src={pakmazLogo} alt='pakmaz' />
-          </div>
-          <div className={styles.logoBox} aria-hidden="true">
-            <img className={styles.pakmazTikshuvLogo} src={pakmazTikshuvLogo} alt='pakmaz tikshuv' />
-          </div>
-        </a>
+          {showUserMenu && (
+            <div className={styles.userMenu}>
+              <div className={styles.menuHeader}>
+                <p className={styles.userFullname}>{user?.displayName}</p>
+                <p className={styles.userEmail}>{user?.email}</p>
+                <p className={styles.userRole}>
+                  {user?.isAdmin ? 'מנהל מערכת' : user?.isContentAdmin ? 'מנהל תוכן' : 'משתמש פורטל'}
+                </p>
+              </div>
+              {user?.isAdmin && (
+                <>
+                  <hr className={styles.menuDivider} />
+                  <button
+                    className={styles.menuItem}
+                    onClick={() => {
+                      navigate('/admin');
+                      setShowUserMenu(false);
+                    }}
+                  >
+                    פאנל ניהול
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

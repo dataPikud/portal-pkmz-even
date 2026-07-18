@@ -17,6 +17,7 @@ import { visitsRouter } from "./routes/visits.routes.js";
 import { contactRouter } from "./routes/contact.routes.js";
 import { uploadsRouter } from "./routes/uploads.routes.js";
 import { videosRouter } from "./routes/videos.routes.js";
+import { notificationsRouter } from "./routes/notifications.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -56,5 +57,7 @@ app.use("/api/visits", visitsRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/uploads", uploadsRouter);
 app.use("/api/videos", videosRouter);
+app.use("/api/notifications", notificationsRouter);
 
 app.use(errorHandler);
+

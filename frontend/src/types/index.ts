@@ -96,3 +96,11 @@ export interface UploadThumbnailResponse {
   fileName: string;
 }
 
+export interface SystemNotification {
+  id: number;
+  title: string;
+  message: string;
+  createdAt: string;
+}
+
+
