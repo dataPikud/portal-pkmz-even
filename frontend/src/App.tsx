@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { NeuralNetworkBackground } from './components/NeuralNetworkBackground';
 import { ContactForm } from './components/ContactForm';
 import { HomePage } from './pages/HomePage';
@@ -11,10 +11,24 @@ import { api } from './lib/api';
 import type { User } from './types';
 
 // SSO stub: מגדירים זהות ברירת מחדל לפני כל render
-// כשיהיה SSO אמיתי יוחלף בטוקן מה-IdP
 if (!sessionStorage.getItem('employeeId')) {
   sessionStorage.setItem('employeeId', 'admin001');
   sessionStorage.setItem('displayName', 'מנהל מערכת');
+}
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <div key={location.pathname} className="page-transition-container">
+      <Routes location={location}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/category/:id" element={<CategoryPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/content" element={<ContentPage />} />
+      </Routes>
+    </div>
+  );
 }
 
 function AppShell() {
@@ -23,11 +37,9 @@ function AppShell() {
   useEffect(() => {
     void api.users.me()
       .then((user) => {
-        // user יכול להיות null אם אין SSO - זה תקין
         setUser(user as User | null);
       })
       .catch(() => {
-        // fallback אם ה-backend לא פועל בכלל
         setUser(null);
       });
   }, [setUser]);
@@ -49,12 +61,7 @@ function AppShell() {
   return (
     <div className="app-root">
       <NeuralNetworkBackground />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/category/:id" element={<CategoryPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/content" element={<ContentPage />} />
-      </Routes>
+      <AnimatedRoutes />
       <ContactForm />
     </div>
   );

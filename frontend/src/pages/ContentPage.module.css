@@ -1,9 +1,8 @@
 .layoutContainer {
   display: flex;
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   background: transparent;
-  overflow: hidden;
   direction: rtl;
 }
 
@@ -11,7 +10,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  height: 100vh;
+  min-width: 0;
+  min-height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -32,64 +32,79 @@
 }
 
 .mainContent {
-  padding: 40px 32px;
+  padding: 32px 32px 48px;
   flex: 1;
 }
 
 /* Grid layout */
 .cardsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
 }
 
-/* Card */
+/* Card - Instant solid base so cards never flash transparent */
 .card {
   position: relative;
-  background: rgba(9, 15, 30, 0.25);
+  background: #0f172a; /* Solid fallback */
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 36px 20px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 30px 18px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  min-height: 240px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 220px;
   outline: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-.card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 25px rgba(139, 92, 246, 0.35); /* Purple Glow */
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.35);
+  }
+}
+
+.card:active {
+  transform: scale(0.97);
 }
 
 /* Favorites Star Button on Top Right */
 .starBtn {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 10px;
+  right: 10px;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.25);
   cursor: pointer;
-  padding: 6px;
+  padding: 8px;
   border-radius: 50%;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 5;
+  min-width: 36px;
+  min-height: 36px;
 }
 
-.starBtn:hover {
-  color: #f59e0b;
-  background: rgba(255, 255, 255, 0.05);
+@media (hover: hover) {
+  .starBtn:hover {
+    color: #f59e0b;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.starBtn:active {
+  transform: scale(1.2);
 }
 
 .starFavActive {
@@ -100,45 +115,55 @@
 /* Share Button on Top Left */
 .shareBtn {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 10px;
+  left: 10px;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.25);
   cursor: pointer;
-  padding: 6px;
+  padding: 8px;
   border-radius: 50%;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 5;
+  min-width: 36px;
+  min-height: 36px;
 }
 
-.shareBtn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+@media (hover: hover) {
+  .shareBtn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.shareBtn:active {
+  transform: scale(0.92);
 }
 
 /* Circular thumbnail / icon container with play overlay */
 .imageContainer {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
   background: rgba(139, 92, 246, 0.1);
 }
 
-.card:hover .imageContainer {
-  transform: scale(1.06);
+@media (hover: hover) {
+  .card:hover .imageContainer {
+    transform: scale(1.06);
+  }
 }
 
 .systemImg {
@@ -154,30 +179,40 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.2s ease;
 }
 
-.card:hover .playOverlay {
-  opacity: 1;
+@media (hover: hover) {
+  .card:hover .playOverlay {
+    opacity: 1;
+  }
+}
+
+/* For mobile touch devices, keep play icon subtley visible */
+@media (hover: none) {
+  .playOverlay {
+    opacity: 0.85;
+    background: rgba(139, 92, 246, 0.3);
+  }
 }
 
 .cardName {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #fff;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .cardDesc {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   line-height: 1.45;
 }
 
@@ -190,7 +225,7 @@
   color: rgba(255, 255, 255, 0.4);
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   width: 100%;
-  padding-top: 10px;
+  padding-top: 8px;
   justify-content: center;
   margin-top: auto;
 }
@@ -219,14 +254,19 @@
   padding: 40px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .layoutContainer {
-    flex-direction: column-reverse;
-  }
-  .contentArea {
-    height: auto;
+    flex-direction: column;
   }
   .mainContent {
-    padding: 24px 16px;
+    padding: 20px 16px 36px;
+  }
+  .cardsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    min-height: 180px;
+    padding: 24px 12px 14px;
   }
 }

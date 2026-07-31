@@ -22,6 +22,8 @@ import { api } from '../lib/api';
 import { useFavoritesStore } from '../store/useFavoritesStore';
 import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
+import { PageLoader } from '../components/PageLoader';
+import { useSmartLoader } from '../hooks/useSmartLoader';
 import type { MainCategory, System } from '../types';
 import styles from './CategoryPage.module.css';
 
@@ -202,14 +204,26 @@ export function CategoryPage() {
     }));
   }, [category]);
 
+  const { showLoader } = useSmartLoader(loading, { delayMs: 2000, minVisibleMs: 5000 });
+
+  if (showLoader) {
+    return (
+      <div className={styles.layoutContainer}>
+        <Sidebar />
+        <div className={styles.contentArea}>
+          <PageLoader fullScreen message="טוען את המערכות..." />
+        </div>
+      </div>
+    );
+  }
+
+  // Fast load window (loading is still true, but showLoader is false)
   if (loading) {
     return (
       <div className={styles.layoutContainer}>
         <Sidebar />
         <div className={styles.contentArea}>
-          <div className={styles.skeletonWrapper}>
-            <span style={{ color: 'var(--muted)' }}>טוען מערכות...</span>
-          </div>
+          <Navbar breadcrumbs={[{ label: '...' }]} />
         </div>
       </div>
     );

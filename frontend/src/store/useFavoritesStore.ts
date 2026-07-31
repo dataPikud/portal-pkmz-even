@@ -3,27 +3,41 @@ import { useAuthStore } from './useAuthStore';
 
 interface FavoritesState {
   favorites: number[];
+  videoFavorites: number[];
   toggleFavorite: (systemId: number) => void;
   isFavorite: (systemId: number) => boolean;
+  toggleVideoFavorite: (videoId: number) => void;
+  isVideoFavorite: (videoId: number) => boolean;
 }
 
-const getStorageKey = (): string => {
+const getStorageKeys = () => {
   const user = useAuthStore.getState().user;
-  return `portal-favorites-${user?.id || user?.employeeId || 'guest'}`;
+  const id = user?.id || user?.employeeId || 'guest';
+  return {
+    systemsKey: `portal-favorites-${id}`,
+    videosKey: `portal-video-favorites-${id}`,
+  };
 };
 
-const getInitialFavorites = (): number[] => {
+const getInitialFavorites = (): { favorites: number[]; videoFavorites: number[] } => {
   try {
-    const key = getStorageKey();
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : [];
+    const { systemsKey, videosKey } = getStorageKeys();
+    const storedSys = localStorage.getItem(systemsKey);
+    const storedVid = localStorage.getItem(videosKey);
+    return {
+      favorites: storedSys ? JSON.parse(storedSys) : [],
+      videoFavorites: storedVid ? JSON.parse(storedVid) : [],
+    };
   } catch {
-    return [];
+    return { favorites: [], videoFavorites: [] };
   }
 };
 
+const initial = getInitialFavorites();
+
 export const useFavoritesStore = create<FavoritesState>((set, get) => ({
-  favorites: getInitialFavorites(),
+  favorites: initial.favorites,
+  videoFavorites: initial.videoFavorites,
 
   toggleFavorite: (systemId: number) => {
     const current = get().favorites;
@@ -33,10 +47,10 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
       : [...current, systemId];
 
     try {
-      const key = getStorageKey();
-      localStorage.setItem(key, JSON.stringify(updated));
+      const { systemsKey } = getStorageKeys();
+      localStorage.setItem(systemsKey, JSON.stringify(updated));
     } catch (e) {
-      console.error('Failed to save favorites to localStorage:', e);
+      console.error('Failed to save favorites:', e);
     }
 
     set({ favorites: updated });
@@ -45,16 +59,35 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   isFavorite: (systemId: number) => {
     return get().favorites.includes(systemId);
   },
+
+  toggleVideoFavorite: (videoId: number) => {
+    const current = get().videoFavorites;
+    const exists = current.includes(videoId);
+    const updated = exists
+      ? current.filter((id) => id !== videoId)
+      : [...current, videoId];
+
+    try {
+      const { videosKey } = getStorageKeys();
+      localStorage.setItem(videosKey, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save video favorites:', e);
+    }
+
+    set({ videoFavorites: updated });
+  },
+
+  isVideoFavorite: (videoId: number) => {
+    return get().videoFavorites.includes(videoId);
+  },
 }));
 
 // Re-initialize when auth user changes
-useAuthStore.subscribe((state) => {
+useAuthStore.subscribe(() => {
   try {
-    const key = `portal-favorites-${state.user?.id || state.user?.employeeId || 'guest'}`;
-    const stored = localStorage.getItem(key);
-    const favorites = stored ? JSON.parse(stored) : [];
-    useFavoritesStore.setState({ favorites });
+    const { favorites, videoFavorites } = getInitialFavorites();
+    useFavoritesStore.setState({ favorites, videoFavorites });
   } catch {
-    useFavoritesStore.setState({ favorites: [] });
+    useFavoritesStore.setState({ favorites: [], videoFavorites: [] });
   }
 });

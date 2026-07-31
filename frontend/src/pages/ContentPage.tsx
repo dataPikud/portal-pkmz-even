@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Play, Share2, Film, Star, Clock } from 'lucide-react';
 import { api } from '../lib/api';
-import { useAuthStore } from '../store/useAuthStore';
+import { useFavoritesStore } from '../store/useFavoritesStore';
+import { useSmartLoader } from '../hooks/useSmartLoader';
 import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
 import { VideoModal } from '../components/VideoModal';
+import { PageLoader } from '../components/PageLoader';
 import type { Video } from '../types';
 import styles from './ContentPage.module.css';
 
@@ -18,183 +20,148 @@ function formatDuration(secs: number | null | undefined): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function videoUrl(fileName: string): string {
-  return `/uploads/videos/${encodeURIComponent(fileName)}`;
+/** Construct direct URL to video file */
+export function videoUrl(filename: string): string {
+  return `/uploads/videos/${encodeURIComponent(filename)}`;
 }
 
-export function thumbnailUrl(fileName: string): string {
-  return `/uploads/thumbnails/${encodeURIComponent(fileName)}`;
+/** Construct direct URL to thumbnail image */
+export function thumbnailUrl(filename?: string | null): string | null {
+  if (!filename) return null;
+  return `/uploads/thumbnails/${encodeURIComponent(filename)}`;
 }
 
-// ===== Video Card Redesigned to match SystemCard =====
-function VideoCard({
-  video,
-  onPlay,
-  isFav,
-  onToggleFav,
-}: {
+// ===== Subcomponent: Video Card =====
+interface VideoCardProps {
   video: Video;
-  onPlay: (video: Video) => void;
+  onPlay: (v: Video) => void;
   isFav: boolean;
   onToggleFav: (id: number) => void;
-}) {
-  const duration = formatDuration(video.duration);
+}
 
-  function handleShare(e: React.MouseEvent) {
-    e.stopPropagation();
-    const url = `${window.location.origin}/content?v=${video.id}`;
-    if (navigator.share) {
-      void navigator.share({ title: video.title, url });
-    } else {
-      void navigator.clipboard.writeText(url).then(() => {
-        alert('הקישור הועתק ללוח');
-      });
-    }
-  }
+function VideoCard({ video, onPlay, isFav, onToggleFav }: VideoCardProps) {
+  const [copied, setCopied] = useState(false);
+  const thumb = thumbnailUrl(video.thumbnailName);
 
-  function handleToggleStar(e: React.MouseEvent) {
+  const handleShare = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggleFav(video.id);
-  }
+    const link = `${window.location.origin}/content?video=${video.id}`;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  }, [video.id]);
 
   return (
-    <article
-      className={`${styles.card} ${isFav ? styles.cardFav : ''}`}
+    <div
+      className={styles.card}
       onClick={() => onPlay(video)}
-      role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
+      role="button"
+      onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onPlay(video);
         }
       }}
-      aria-label={`הפעל סרטון: ${video.title}`}
     >
-      {/* Star button on top-right */}
+      {/* Star button top-right */}
       <button
         type="button"
         className={`${styles.starBtn} ${isFav ? styles.starFavActive : ''}`}
-        onClick={handleToggleStar}
+        onClick={e => {
+          e.stopPropagation();
+          onToggleFav(video.id);
+        }}
         title={isFav ? 'הסר ממועדפים' : 'הוסף למועדפים'}
-        aria-label={isFav ? `הסר את ${video.title} ממועדפים` : `הוסף את ${video.title} למועדפים`}
       >
-        <Star size={18} fill={isFav ? 'currentColor' : 'none'} />
+        <Star size={16} fill={isFav ? '#f59e0b' : 'none'} color={isFav ? '#f59e0b' : 'currentColor'} />
       </button>
 
-      {/* Share button on top-left */}
+      {/* Share button top-left */}
       <button
         type="button"
         className={styles.shareBtn}
         onClick={handleShare}
-        title="שתף סרטון"
-        aria-label="שתף סרטון"
+        title={copied ? 'הקישור הועתק!' : 'שתף קישור'}
       >
-        <Share2 size={16} />
+        <Share2 size={16} color={copied ? '#10b981' : 'currentColor'} />
       </button>
 
-      {/* Glass circular container with video thumbnail/icon & play overlay */}
+      {/* Thumbnail or icon fallback with hover play overlay */}
       <div className={styles.imageContainer}>
-        {video.thumbnailName ? (
-          <img
-            src={thumbnailUrl(video.thumbnailName)}
-            alt={video.title}
-            className={styles.systemImg}
-            loading="lazy"
-          />
+        {thumb ? (
+          <img src={thumb} alt={video.title} className={styles.systemImg} />
         ) : (
-          <Film size={26} color="#8b5cf6" aria-hidden="true" />
+          <Film size={28} color="#8b5cf6" />
         )}
-        
-        {/* Play Overlay indicator */}
-        <div className={styles.playOverlay} aria-hidden="true">
-          <Play size={18} fill="currentColor" />
+        <div className={styles.playOverlay}>
+          <Play size={20} fill="currentColor" />
         </div>
       </div>
 
-      {/* Video Details */}
       <h3 className={styles.cardName}>{video.title}</h3>
+
       {video.description && (
         <p className={styles.cardDesc}>{video.description}</p>
       )}
 
-      {/* Duration Badge */}
-      {duration && (
-        <span className={styles.durationBadge}>
-          <Clock size={11} />
-          {duration}
-        </span>
-      )}
-    </article>
+      {video.duration ? (
+        <div className={styles.durationBadge}>
+          <Clock size={12} />
+          <span>{formatDuration(video.duration)}</span>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
 // ===== Main ContentPage =====
 export function ContentPage() {
-  const user = useAuthStore(s => s.user);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showLoader, isContentReady } = useSmartLoader(loading, { delayMs: 2000, minVisibleMs: 5000 });
   const [activeVideo, setActiveVideo] = useState<Video | null>(null);
 
   // Search query state
   const [searchQuery, setSearchQuery] = useState('');
 
   // Favorites state for videos
-  const [videoFavs, setVideoFavs] = useState<number[]>([]);
-  const favStorageKey = `portal-video-favorites-${user?.employeeId || 'guest'}`;
-
-  // Load video favorites
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(favStorageKey);
-      if (stored) setVideoFavs(JSON.parse(stored) as number[]);
-    } catch {
-      // ignore
-    }
-  }, [favStorageKey]);
+  const videoFavs = useFavoritesStore(s => s.videoFavorites);
+  const toggleVideoFav = useFavoritesStore(s => s.toggleVideoFavorite);
 
   function handleToggleFav(id: number) {
-    const exists = videoFavs.includes(id);
-    const updated = exists ? videoFavs.filter(fid => fid !== id) : [...videoFavs, id];
-    setVideoFavs(updated);
-    localStorage.setItem(favStorageKey, JSON.stringify(updated));
+    toggleVideoFav(id);
   }
 
   // Fetch videos list
   useEffect(() => {
     void api.videos.list()
-      .then(list => {
-        setVideos(list);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      .then(res => setVideos(res))
+      .catch(err => console.error('Failed to fetch videos:', err))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Handle deep link /content?v=<id>
+  // Auto-open video from URL query param `?video=ID`
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('v');
-    if (id && videos.length > 0) {
-      const found = videos.find(v => v.id === Number(id));
+    const videoId = params.get('video');
+    if (videoId && videos.length > 0) {
+      const found = videos.find(v => String(v.id) === videoId);
       if (found) setActiveVideo(found);
     }
   }, [videos]);
 
   const handleClose = useCallback(() => {
     setActiveVideo(null);
-    const url = new URL(window.location.href);
-    url.searchParams.delete('v');
-    window.history.replaceState({}, '', url.toString());
   }, []);
 
-  // Filtered list of videos based on search
+  // Filter videos based on search query
   const filteredVideos = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return videos;
+    if (!searchQuery.trim()) return videos;
+    const q = searchQuery.toLowerCase().trim();
     return videos.filter(
-      v =>
-        v.title.toLowerCase().includes(q) ||
-        (v.description ?? '').toLowerCase().includes(q)
+      v => v.title.toLowerCase().includes(q) || (v.description && v.description.toLowerCase().includes(q))
     );
   }, [videos, searchQuery]);
 
@@ -203,8 +170,8 @@ export function ContentPage() {
       {/* Right Sidebar */}
       <Sidebar />
 
+      {/* Main Content Area */}
       <div className={styles.contentArea}>
-        {/* Navbar with breadcrumbs and live search */}
         <Navbar
           breadcrumbs={[{ label: 'חומרי הטמעה' }]}
           searchQuery={searchQuery}
@@ -214,16 +181,16 @@ export function ContentPage() {
 
         {/* Main Content Grid */}
         <main className={styles.mainContent}>
-          {loading ? (
+          {showLoader ? (
             <div className={styles.loaderWrapper}>
-              <span style={{ color: 'var(--muted)' }}>טוען סרטונים...</span>
+              <PageLoader message="טוען סרטוני הדרכה..." />
             </div>
-          ) : filteredVideos.length === 0 ? (
+          ) : isContentReady && filteredVideos.length === 0 ? (
             <div className={styles.empty}>
               <Film size={36} className={styles.emptyIcon} />
               <p>לא נמצאו סרטוני הדרכה מתאימים</p>
             </div>
-          ) : (
+          ) : isContentReady ? (
             <div className={styles.cardsGrid}>
               {filteredVideos.map(video => (
                 <VideoCard
@@ -235,7 +202,7 @@ export function ContentPage() {
                 />
               ))}
             </div>
-          )}
+          ) : null}
         </main>
       </div>
 
@@ -249,4 +216,3 @@ export function ContentPage() {
     </div>
   );
 }
-

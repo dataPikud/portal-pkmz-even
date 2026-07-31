@@ -5,6 +5,8 @@ import { api } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
+import { PageLoader } from '../components/PageLoader';
+import { useSmartLoader } from '../hooks/useSmartLoader';
 import type { MainCategory, SubCategory, System, Video, UpdateVideoDto, SystemNotification } from '../types';
 import { thumbnailUrl, videoUrl } from './ContentPage';
 import styles from './AdminPage.module.css';
@@ -964,12 +966,14 @@ export function AdminPage() {
     setAllSubs(prev => prev.filter(s => s.id !== subId));
   }
 
-  if (loading) {
+  const { showLoader } = useSmartLoader(loading, { delayMs: 2000, minVisibleMs: 5000 });
+
+  if (showLoader) {
     return (
       <div className={styles.layoutContainer}>
         <Sidebar />
         <div className={styles.contentArea}>
-          <div style={{ padding: 40, color: 'var(--muted)', textAlign: 'right' }}>טוען...</div>
+          <PageLoader fullScreen message="טוען נתוני ניהול..." />
         </div>
       </div>
     );
