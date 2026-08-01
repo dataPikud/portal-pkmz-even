@@ -4,6 +4,7 @@
   position: sticky;
   top: 0;
   right: 0;
+  align-self: flex-start;
   display: flex;
   flex-direction: column;
   background: rgba(8, 12, 24, 0.85);

@@ -18,6 +18,9 @@ import { contactRouter } from "./routes/contact.routes.js";
 import { uploadsRouter } from "./routes/uploads.routes.js";
 import { videosRouter } from "./routes/videos.routes.js";
 import { notificationsRouter } from "./routes/notifications.routes.js";
+import { foldersRouter } from "./routes/folders.routes.js";
+import { searchRouter } from "./routes/search.routes.js";
+import { analyticsRouter } from "./routes/analytics.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -52,6 +55,9 @@ app.use("/health", healthRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/main-categories", mainCategoriesRouter);
 app.use("/api/sub-categories", subCategoriesRouter);
+app.use("/api/folders", foldersRouter);
+app.use("/api/search", searchRouter);
+app.use("/api/analytics", analyticsRouter);
 app.use("/api/systems", systemsRouter);
 app.use("/api/visits", visitsRouter);
 app.use("/api/contact", contactRouter);

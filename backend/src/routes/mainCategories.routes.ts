@@ -11,9 +11,12 @@ mainCategoriesRouter.get("/", async (_req, res, next) => {
       where: { isActive: true },
       orderBy: { sortOrder: "asc" },
       include: {
-        subCategories: {
-          where: { isActive: true },
+        folders: {
+          where: { isActive: true, parentId: null },
           orderBy: { sortOrder: "asc" },
+          include: {
+            _count: { select: { systems: true, videos: true, children: true } },
+          },
         },
       },
     });
@@ -23,21 +26,30 @@ mainCategoriesRouter.get("/", async (_req, res, next) => {
   }
 });
 
-/** GET /api/main-categories/:id – ציבורי, עם מערכות */
+/** GET /api/main-categories/:id – ציבורי, עם תיקיות שורש ואייטמים */
 mainCategoriesRouter.get("/:id", async (req, res, next) => {
   try {
     const id = Number(req.params["id"]);
     const category = await prisma.mainCategory.findUnique({
       where: { id },
       include: {
-        subCategories: {
-          where: { isActive: true },
+        folders: {
+          where: { isActive: true, parentId: null },
           orderBy: { sortOrder: "asc" },
           include: {
+            children: {
+              where: { isActive: true },
+              orderBy: { sortOrder: "asc" },
+            },
             systems: {
               where: { isActive: true },
               orderBy: { sortOrder: "asc" },
             },
+            videos: {
+              where: { isActive: true },
+              orderBy: { sortOrder: "asc" },
+            },
+            _count: { select: { systems: true, videos: true, children: true } },
           },
         },
       },

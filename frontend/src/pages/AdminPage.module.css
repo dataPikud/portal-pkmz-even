@@ -1,10 +1,10 @@
 .layoutContainer {
   display: flex;
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   background: transparent;
-  overflow: hidden;
   direction: rtl;
+  align-items: flex-start;
 }
 
 .contentArea {
@@ -837,4 +837,553 @@
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 1px 5px;
+}
+
+/* ===== Nested Folders & Tags Admin Styles ===== */
+.subTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.tagChipsInline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.tagChipMini {
+  font-size: 10px;
+  font-weight: 600;
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.sysCategoryBadge {
+  font-size: 11px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.folderTreeList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mainCategoryFolderGroup {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mainCatGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 10px;
+}
+
+.mainCatGroupHeader h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.folderBadge {
+  font-size: 11px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.emptyFolderText {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  padding: 8px 0;
+}
+
+.folderSubList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.folderTreeNode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.folderNodeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: background 0.15s ease;
+}
+
+.folderNodeRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.folderNodeInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.folderNodeName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.folderNodeDesc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.folderNodeActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.folderNodeChildren {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 2px dotted rgba(245, 158, 11, 0.3);
+  padding-right: 12px;
+  margin-top: 4px;
+}
+
+.videoAdminCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.videoMetaWrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.videoAdminInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.videoAdminInfo h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.videoAdminInfo p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ===== Clean Datatables Styles ===== */
+.tableCard {
+  background: #0f172a;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.tableHeaderRow {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1.2fr;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  align-items: center;
+}
+
+.tableDataRow {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1.2fr;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  color: #fff;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.tableDataRow:last-child {
+  border-bottom: none;
+}
+
+.tableDataRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sysCellName {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sysIconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sysThumb {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.sysMetaText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sysNameText {
+  font-weight: 700;
+  color: #fff;
+}
+
+.sysDescText {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.urlCell {
+  color: #60a5fa;
+  font-size: 12px;
+  direction: ltr;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 10px;
+}
+
+.emptyBadge {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* ===== Split-Pane Visual Explorer Styles ===== */
+.explorerSplitView {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  min-height: calc(100vh - 220px);
+}
+
+.treePane {
+  background: #0f172a;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+.treePaneHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.treePaneHeader h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  flex: 1;
+}
+
+.quickAddFolderBtn, .treeAddBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickAddFolderBtn:hover, .treeAddBtn:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.treePaneContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.treeCategoryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.treeCategoryRow, .treeFolderRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.treeCategoryRow:hover, .treeFolderRow:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.treeRowSelected {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.treeNodeLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.treeChildrenWrap, .treeSubFolderWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.treeFolderNode {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Content Pane */
+.contentPane {
+  background: #0f172a;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  min-height: calc(100vh - 220px);
+}
+
+.contentPaneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 14px;
+}
+
+.headerTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerTitleGroup h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.itemsCountBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.headerActionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.addPrimaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #2563eb;
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.addPrimaryBtn:hover {
+  background: #1d4ed8;
+}
+
+.addVideoBtn {
+  background: #a855f7;
+}
+
+.addVideoBtn:hover {
+  background: #9333ea;
+}
+
+.paneGridSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.paneGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.groupTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.paneItemsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.itemExplorerCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.itemIconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.itemCardActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.itemCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.itemCardDesc {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.emptyPane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 12px;
+  color: var(--muted);
 }

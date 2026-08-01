@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Bell, User, ChevronDown, Home } from 'lucide-react';
+import { Search, Filter, Bell, User, ChevronDown, Home, Pencil } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useEditModeStore } from '../store/useEditModeStore';
 import { NotificationsDropdown } from './NotificationsDropdown';
 import styles from './Navbar.module.css';
 
-interface Breadcrumb {
+export interface Breadcrumb {
   label: string;
   path?: string;
+  onClick?: () => void;
 }
 
 interface NavbarProps {
@@ -35,6 +37,10 @@ export function Navbar({
 }: NavbarProps) {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
+
+  const isEditMode = useEditModeStore((s) => s.isEditMode);
+  const toggleEditMode = useEditModeStore((s) => s.toggleEditMode);
+  const canManageContent = Boolean(user?.isAdmin || user?.isContentAdmin);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -66,24 +72,37 @@ export function Navbar({
           className={styles.homeBtn}
           onClick={() => navigate('/')}
           aria-label="עמוד הבית"
+          title="חזרה לדף הבית"
         >
           <Home size={18} />
         </button>
-        {breadcrumbs.map((crumb, idx) => (
-          <div key={idx} className={styles.crumbWrapper}>
-            <span className={styles.separator}>&gt;</span>
-            {crumb.path ? (
-              <button
-                className={styles.crumbLink}
-                onClick={() => navigate(crumb.path!)}
-              >
-                {crumb.label}
-              </button>
-            ) : (
-              <span className={styles.crumbActive}>{crumb.label}</span>
-            )}
-          </div>
-        ))}
+        {breadcrumbs.map((crumb, idx) => {
+          const isLast = idx === breadcrumbs.length - 1;
+          const isClickable = !isLast && (Boolean(crumb.onClick) || Boolean(crumb.path));
+
+          return (
+            <div key={idx} className={styles.crumbWrapper}>
+              <span className={styles.separator}>&gt;</span>
+              {isClickable ? (
+                <button
+                  className={styles.crumbLink}
+                  onClick={() => {
+                    if (crumb.onClick) {
+                      crumb.onClick();
+                    } else if (crumb.path) {
+                      navigate(crumb.path);
+                    }
+                  }}
+                  title={`עבור אל ${crumb.label}`}
+                >
+                  {crumb.label}
+                </button>
+              ) : (
+                <span className={styles.crumbActive}>{crumb.label}</span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* ימין: חיפוש, סינון, התראות, פרופיל */}
@@ -141,6 +160,18 @@ export function Navbar({
               </div>
             )}
           </div>
+        )}
+
+        {/* מתג מצב עריכה למנהלים */}
+        {canManageContent && (
+          <button
+            className={`${styles.editModeToggleBtn} ${isEditMode ? styles.editModeActive : ''}`}
+            onClick={toggleEditMode}
+            title={isEditMode ? 'כבה מצב עריכה' : 'הפעל מצב עריכה ישיר מתוך המסך'}
+          >
+            <Pencil size={15} />
+            <span>{isEditMode ? 'מצב עריכה: מופעל' : 'מצב עריכה'}</span>
+          </button>
         )}
 
         {/* פעמון התראות */}
