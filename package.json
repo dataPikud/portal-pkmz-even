@@ -14,7 +14,13 @@
     "build": "npm run build --workspace frontend && npm run build --workspace backend",
     "lint": "npm run lint --workspace frontend && npm run lint --workspace backend",
     "prisma:generate": "npm run prisma:generate --workspace backend",
-    "prisma:migrate": "npm run prisma:migrate --workspace backend"
+    "prisma:migrate": "npm run prisma:migrate --workspace backend",
+    "docker:dev": "docker compose --env-file .env.dev -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose --env-file .env.dev -f docker-compose.dev.yml down",
+    "docker:dev:reset": "docker compose --env-file .env.dev -f docker-compose.dev.yml down && docker volume rm -f portal-dev_pgdata-dev portal-dev_uploads-dev && docker compose --env-file .env.dev -f docker-compose.dev.yml up -d --build --wait && docker compose --env-file .env.dev -f docker-compose.dev.yml exec -T backend npx prisma migrate deploy && docker compose --env-file .env.dev -f docker-compose.dev.yml exec -T backend npm run seed:dev",
+    "docker:prod:up": "docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build",
+    "docker:prod:migrate": "docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm --build migrate",
+    "docker:prod:seed": "docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm --build migrate npm run seed:prod"
   },
   "keywords": [
     "portal",

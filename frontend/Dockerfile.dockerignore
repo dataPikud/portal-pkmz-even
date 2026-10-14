@@ -1,0 +1,13 @@
+# Patterns are relative to the build context: the repository root.
+.git
+**/node_modules
+**/dist
+**/dist-ssr
+# Never bake environment files into an image
+**/.env
+**/.env.*
+**/*.local
+**/*.log
+# The frontend image only needs the backend's package.json (for npm ci)
+backend/*
+!backend/package.json

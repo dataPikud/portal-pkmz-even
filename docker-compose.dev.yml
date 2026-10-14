@@ -1,0 +1,84 @@
+# Development. Needs .env.dev (copy .env.dev.example). Start with: npm run docker:dev
+# Host ports can be changed in .env.dev (DEV_*_PORT) when a port is already taken.
+name: portal-dev
+
+# Built from POSTGRES_* so it always points at the db container. DATABASE_URL in .env.dev
+# is only for tools you run on your own machine.
+x-database-url: &database-url postgresql://${POSTGRES_USER:?set POSTGRES_USER in the env file}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@db:5432/${POSTGRES_DB:?set POSTGRES_DB in the env file}
+
+services:
+  db:
+    image: postgres:16.15-bookworm
+    env_file: .env.dev
+    ports:
+      - "${DEV_DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: dev
+    env_file: .env.dev
+    environment:
+      # Fixed inside Docker (health check, port mapping and Vite proxy rely on it).
+      # Change the port on your machine with DEV_BACKEND_PORT instead.
+      PORT: "4000"
+      DATABASE_URL: *database-url
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${DEV_BACKEND_PORT:-4000}:4000"
+    volumes:
+      - ./backend:/app/backend
+      - backend-node-modules:/app/backend/node_modules
+      - backend-root-node-modules:/app/node_modules
+      - uploads-dev:/app/backend/uploads
+      # for docker/sync-deps.sh
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      - ./frontend/package.json:/app/frontend/package.json:ro
+      - ./docker:/docker:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: dev
+    env_file: .env.dev
+    environment:
+      VITE_PROXY_TARGET: http://backend:4000
+    depends_on:
+      - backend
+    ports:
+      - "${DEV_FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - frontend-node-modules:/app/frontend/node_modules
+      - frontend-root-node-modules:/app/node_modules
+      # for docker/sync-deps.sh
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      - ./backend/package.json:/app/backend/package.json:ro
+      - ./docker:/docker:ro
+
+volumes:
+  pgdata-dev:
+  uploads-dev:
+  backend-node-modules:
+  backend-root-node-modules:
+  frontend-node-modules:
+  frontend-root-node-modules:

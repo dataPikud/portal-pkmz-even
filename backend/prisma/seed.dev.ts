@@ -2,6 +2,12 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 
+// This seed deletes data. It must never run against production.
+if (process.env["NODE_ENV"] === "production") {
+  console.error("❌ seed.dev.ts wipes data and refuses to run when NODE_ENV=production. Use seed:prod.");
+  process.exit(1);
+}
+
 const adapter = new PrismaPg({
   connectionString: process.env["DATABASE_URL"],
 });
