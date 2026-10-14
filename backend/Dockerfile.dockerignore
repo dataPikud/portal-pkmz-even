@@ -1,0 +1,15 @@
+# Patterns are relative to the build context: the repository root.
+.git
+**/node_modules
+**/dist
+# Never bake environment files into an image
+**/.env
+**/.env.*
+**/*.log
+# The backend image only needs the frontend's package.json (for npm ci)
+frontend/*
+!frontend/package.json
+# Regenerated inside the image by prisma generate
+backend/src/generated
+# Uploaded files live in a volume
+backend/uploads

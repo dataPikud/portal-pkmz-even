@@ -1,8 +1,6 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { pinoHttp } from "pino-http";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -21,8 +19,6 @@ import { notificationsRouter } from "./routes/notifications.routes.js";
 import { foldersRouter } from "./routes/folders.routes.js";
 import { searchRouter } from "./routes/search.routes.js";
 import { analyticsRouter } from "./routes/analytics.routes.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const app = express();
 
