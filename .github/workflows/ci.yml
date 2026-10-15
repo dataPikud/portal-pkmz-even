@@ -1,0 +1,86 @@
+name: CI
+
+# Runs on every pull request into dev, and on every push to dev, so a bad merge shows up.
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+
+# A newer run on the same branch replaces the older one.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Same version as the Dockerfiles.
+  NODE_VERSION: 24.21.0
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      # One root lockfile for both workspaces; npm ci fails if it is out of date.
+      - run: npm ci
+      # The Prisma client is generated code and is not in git.
+      - run: npx prisma generate
+        working-directory: backend
+      - run: npm run lint --workspace backend
+      # tsc, so this is also the type check.
+      - run: npm run build --workspace backend
+      # Add new checks here as the scripts appear (branch 12: typecheck, format:check).
+      # --if-present keeps CI green until a package has a test script, then runs it.
+      - run: npm test --workspace backend --if-present
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint --workspace frontend
+      # tsc -b, then vite build, so this is also the type check.
+      - run: npm run build --workspace frontend
+      # Same as in the backend job: runs once a test script exists.
+      - run: npm test --workspace frontend --if-present
+
+  # Builds the production images without pushing them. Catches a lockfile that npm on
+  # Windows stripped of its Linux native packages (see CLAUDE.md).
+  docker-images:
+    name: docker-images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: docker/setup-buildx-action@v3.10.0
+      - uses: docker/build-push-action@v6.15.0
+        with:
+          context: .
+          file: backend/Dockerfile
+          target: prod
+          push: false
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+      - uses: docker/build-push-action@v6.15.0
+        with:
+          context: .
+          file: frontend/Dockerfile
+          target: prod
+          push: false
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
