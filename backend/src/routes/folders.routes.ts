@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.js";
 import { prisma } from "../lib/prisma.js";
+import type { CategoryFolder } from "../generated/prisma/client.js";
 
 export const foldersRouter = Router();
+
+type FolderNode = CategoryFolder & { children: FolderNode[] };
 
 /**
  * Helper to build breadcrumbs path array from a given folder ID up to root
@@ -73,13 +76,14 @@ foldersRouter.get("/tree", async (req, res, next) => {
     });
 
     // Build hierarchical tree in memory
-    const folderMap = new Map<number, any>();
+    const folderMap = new Map<number, FolderNode>();
     allFolders.forEach(f => folderMap.set(f.id, { ...f, children: [] }));
 
-    const rootFolders: any[] = [];
+    const rootFolders: FolderNode[] = [];
     folderMap.forEach(folder => {
-      if (folder.parentId && folderMap.has(folder.parentId)) {
-        folderMap.get(folder.parentId).children.push(folder);
+      const parent = folder.parentId !== null ? folderMap.get(folder.parentId) : undefined;
+      if (parent) {
+        parent.children.push(folder);
       } else {
         rootFolders.push(folder);
       }

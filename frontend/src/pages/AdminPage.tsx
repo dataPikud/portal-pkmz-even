@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Plus, Pencil, Trash2, Search, Film, Folder as FolderIcon, BarChart3, Globe, Bell, LayoutGrid } from 'lucide-react';
+import { Plus, Pencil, Trash2, Film, Folder as FolderIcon, BarChart3, Globe, Bell, LayoutGrid } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { Sidebar } from '../components/Sidebar';

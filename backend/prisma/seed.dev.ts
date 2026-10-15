@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../src/generated/prisma/client.js";
+import { PrismaClient, type System } from "../src/generated/prisma/client.js";
 
 // This seed deletes data. It must never run against production.
 if (process.env["NODE_ENV"] === "production") {
@@ -152,7 +152,7 @@ async function main() {
   console.log("✅ Created nested category folders including Content Page folders");
 
   // ===== מערכות (Systems) =====
-  const createdSystems: any[] = [];
+  const createdSystems: System[] = [];
   const systemDatas = [
     { name: "דשבורד מבצעים", description: "נתונים מבצעיים ואינטגרטיביים בזמן אמת", url: "https://example.com/ops-dashboard", folderId: folderDashMain.id, tags: ["מבצעים", "נתונים", "שלד"], sortOrder: 1 },
     { name: "דשבורד כוח אדם", description: "סטטיסטיקות כ\"א, מצבות וחתכים ניהוליים", url: "https://example.com/hr-dashboard", folderId: folderDashMain.id, tags: ["כוח אדם", "משאבי אנוש"], sortOrder: 2 },
@@ -222,6 +222,15 @@ async function main() {
     await prisma.notification.create({ data: n });
   }
   console.log(`✅ Created ${notifications.length} system notifications`);
+
+  // The main category ids above are explicit, so move the id sequence past them.
+  // Otherwise the first category created without an id would try to reuse id 1.
+  await prisma.$queryRaw`
+    SELECT setval(
+      pg_get_serial_sequence('"MainCategory"', 'id'),
+      (SELECT COALESCE(MAX(id), 1) FROM "MainCategory")
+    )
+  `;
 
   console.log("🎉 Seed complete!");
 }
