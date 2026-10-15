@@ -1,5 +1,5 @@
 import type {
-  ContactRequest, MainCategory, SubCategory, CategoryFolder, System,
+  ContactRequest, MainCategory, CategoryFolder, System,
   Video, CreateVideoDto, UpdateVideoDto,
   UploadVideoResponse, UploadThumbnailResponse,
   SystemNotification, SearchResult, AnalyticsOverview, SystemAnalyticsBreakdown,
@@ -79,14 +79,6 @@ export const api = {
     create: (data: Partial<MainCategory>) => post<MainCategory>('/main-categories', data),
     update: (id: number, data: Partial<MainCategory>) => put<MainCategory>(`/main-categories/${id}`, data),
     delete: (id: number) => del(`/main-categories/${id}`),
-  },
-
-  subCategories: {
-    create: (data: { name: string; description?: string; sortOrder?: number; mainCategoryId: number; parentId?: number | null }) =>
-      post<SubCategory>('/sub-categories', data),
-    update: (id: number, data: { name?: string; description?: string; sortOrder?: number; isActive?: boolean; parentId?: number | null }) =>
-      put<SubCategory>(`/sub-categories/${id}`, data),
-    delete: (id: number) => del(`/sub-categories/${id}`),
   },
 
   folders: {

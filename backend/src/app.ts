@@ -9,7 +9,6 @@ import { UPLOADS_ROOT } from "./lib/upload.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import { mainCategoriesRouter } from "./routes/mainCategories.routes.js";
-import { subCategoriesRouter } from "./routes/subCategories.routes.js";
 import { systemsRouter } from "./routes/systems.routes.js";
 import { visitsRouter } from "./routes/visits.routes.js";
 import { contactRouter } from "./routes/contact.routes.js";
@@ -50,7 +49,6 @@ app.use(
 app.use("/health", healthRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/main-categories", mainCategoriesRouter);
-app.use("/api/sub-categories", subCategoriesRouter);
 app.use("/api/folders", foldersRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/analytics", analyticsRouter);
