@@ -1,8 +1,8 @@
 import type {
-  ContactRequest, MainCategory, SubCategory, System,
+  ContactRequest, MainCategory, CategoryFolder, System,
   Video, CreateVideoDto, UpdateVideoDto,
   UploadVideoResponse, UploadThumbnailResponse,
-  SystemNotification,
+  SystemNotification, SearchResult, AnalyticsOverview, SystemAnalyticsBreakdown,
 } from '../types';
 
 const BASE = '/api';
@@ -81,12 +81,30 @@ export const api = {
     delete: (id: number) => del(`/main-categories/${id}`),
   },
 
-  subCategories: {
-    create: (data: { name: string; description?: string; sortOrder?: number; mainCategoryId: number }) =>
-      post<SubCategory>('/sub-categories', data),
-    update: (id: number, data: { name?: string; description?: string; sortOrder?: number; isActive?: boolean }) =>
-      put<SubCategory>(`/sub-categories/${id}`, data),
-    delete: (id: number) => del(`/sub-categories/${id}`),
+  folders: {
+    list: (mainCategoryId?: number, parentId?: number | null) => {
+      const params = new URLSearchParams();
+      if (mainCategoryId !== undefined) params.append('mainCategoryId', String(mainCategoryId));
+      if (parentId !== undefined) params.append('parentId', parentId === null ? 'null' : String(parentId));
+      const q = params.toString();
+      return get<CategoryFolder[]>(`/folders${q ? '?' + q : ''}`);
+    },
+    tree: (mainCategoryId?: number) =>
+      get<CategoryFolder[]>(`/folders/tree${mainCategoryId ? '?mainCategoryId=' + mainCategoryId : ''}`),
+    get: (id: number) => get<CategoryFolder>(`/folders/${id}`),
+    create: (data: Partial<CategoryFolder>) => post<CategoryFolder>('/folders', data),
+    update: (id: number, data: Partial<CategoryFolder>) => put<CategoryFolder>(`/folders/${id}`, data),
+    delete: (id: number) => del(`/folders/${id}`),
+  },
+
+  search: {
+    query: (q?: string, tag?: string) => {
+      const params = new URLSearchParams();
+      if (q) params.append('q', q);
+      if (tag) params.append('tag', tag);
+      const queryString = params.toString();
+      return get<SearchResult>(`/search${queryString ? '?' + queryString : ''}`);
+    },
   },
 
   systems: {
@@ -97,9 +115,15 @@ export const api = {
     delete: (id: number) => del(`/systems/${id}`),
   },
 
+  analytics: {
+    overview: () => get<AnalyticsOverview>('/analytics/overview'),
+    systemBreakdown: (id: number) => get<SystemAnalyticsBreakdown>(`/analytics/system/${id}`),
+    resetVisits: () => post('/analytics/reset-visits', {}),
+  },
+
   visits: {
     recent: () => get<System[]>('/visits/recent'),
-    record: (systemId: number) => post('/visits', { systemId }),
+    record: (systemId?: number, videoId?: number) => post('/visits', { systemId, videoId }),
   },
 
   contact: {

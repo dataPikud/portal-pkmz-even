@@ -10,15 +10,19 @@ export const visitsRouter = Router();
 visitsRouter.post("/", requireAuth, async (req, res, next) => {
   try {
     const user = res.locals.user;
-    const { systemId } = req.body as { systemId: number };
+    const { systemId, videoId } = req.body as { systemId?: number; videoId?: number };
 
-    if (!systemId) {
-      res.status(400).json({ message: "systemId הוא שדה חובה" });
+    if (!systemId && !videoId) {
+      res.status(400).json({ message: "systemId או videoId הוא שדה חובה" });
       return;
     }
 
     await prisma.userVisit.create({
-      data: { userId: user.id, systemId },
+      data: {
+        userId: user.id,
+        systemId: systemId ? Number(systemId) : undefined,
+        videoId: videoId ? Number(videoId) : undefined,
+      },
     });
 
     res.status(201).json({ ok: true });
@@ -44,7 +48,7 @@ visitsRouter.get("/recent", optionalAuth, async (_req, res, next) => {
       orderBy: { visitedAt: "desc" },
       include: {
         system: {
-          include: { subCategory: { include: { mainCategory: true } } },
+          include: { folder: { include: { mainCategory: true } } },
         },
       },
       distinct: ["systemId"],

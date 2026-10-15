@@ -7,6 +7,30 @@ export interface User {
   isContentAdmin: boolean;
 }
 
+export interface CategoryFolder {
+  id: number;
+  name: string;
+  description: string | null;
+  imageUrl?: string | null;
+  icon?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  mainCategoryId: number;
+  parentId: number | null;
+  children?: CategoryFolder[];
+  systems?: System[];
+  videos?: Video[];
+  _count?: {
+    systems: number;
+    videos: number;
+    children: number;
+  };
+  breadcrumbs?: Array<{ id: number; name: string }>;
+}
+
+/** Backward compatibility alias */
+export type SubCategory = CategoryFolder;
+
 export interface MainCategory {
   id: number;
   name: string;
@@ -14,16 +38,12 @@ export interface MainCategory {
   icon: string | null;
   color: string | null;
   sortOrder: number;
-  subCategories?: SubCategory[];
-}
-
-export interface SubCategory {
-  id: number;
-  name: string;
-  description: string | null;
-  sortOrder: number;
-  mainCategoryId: number;
+  isActive: boolean;
+  folders?: CategoryFolder[];
   systems?: System[];
+  videos?: Video[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface System {
@@ -34,8 +54,11 @@ export interface System {
   imageUrl: string | null;
   isActive: boolean;
   sortOrder: number;
-  subCategoryId: number | null;
-  subCategory?: SubCategory & { mainCategory?: MainCategory };
+  tags: string[];
+  folderId: number | null;
+  folder?: CategoryFolder & { mainCategory?: MainCategory };
+  subCategoryId?: number | null;
+  subCategory?: CategoryFolder & { mainCategory?: MainCategory };
 }
 
 export type ContactType = 'תקלה' | 'רעיון' | 'דיווח' | 'אחר';
@@ -60,6 +83,9 @@ export interface Video {
   duration: number | null;
   sortOrder: number;
   isActive: boolean;
+  tags: string[];
+  folderId: number | null;
+  folder?: CategoryFolder & { mainCategory?: MainCategory };
   createdAt: string;
 }
 
@@ -73,6 +99,8 @@ export interface CreateVideoDto {
   fileSize?: number;
   duration?: number;
   sortOrder?: number;
+  folderId?: number | null;
+  tags?: string[];
 }
 
 /** DTO for updating video metadata */
@@ -82,6 +110,8 @@ export interface UpdateVideoDto {
   thumbnailName?: string | null;
   duration?: number;
   sortOrder?: number;
+  folderId?: number | null;
+  tags?: string[];
   isActive?: boolean;
 }
 
@@ -103,4 +133,47 @@ export interface SystemNotification {
   createdAt: string;
 }
 
+export interface SearchResult {
+  systems: System[];
+  videos: Video[];
+  folders: CategoryFolder[];
+  total: number;
+}
 
+export interface AnalyticsOverview {
+  totals: {
+    visits: number;
+    systems: number;
+    folders: number;
+    videos: number;
+  };
+  topSystems: Array<{
+    systemId: number;
+    name: string;
+    folderName: string;
+    clickCount: number;
+    percentage: number;
+  }>;
+  topUsers: Array<{
+    userId: string;
+    employeeId: string;
+    displayName: string;
+    email: string;
+    clickCount: number;
+  }>;
+  timeline: Array<{
+    date: string;
+    count: number;
+  }>;
+}
+
+export interface SystemAnalyticsBreakdown {
+  system: System;
+  totalClicks: number;
+  userBreakdown: Array<{
+    userId: string;
+    employeeId: string;
+    displayName: string;
+    count: number;
+  }>;
+}

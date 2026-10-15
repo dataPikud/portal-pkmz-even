@@ -24,47 +24,59 @@ model User {
 
 // ===== קטגוריות ראשיות (4 אייקון-כרטיסים בדף הבית) =====
 model MainCategory {
-  id          Int      @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   name        String
   description String?
   icon        String?          // שם אייקון או emoji
   color       String?          // צבע הקטגוריה (hex)
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  sortOrder   Int              @default(0)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  subCategories SubCategory[]
+  folders     CategoryFolder[]
 }
 
-// ===== קטגוריות משנה בתוך כל קטגוריה ראשית =====
-model SubCategory {
-  id             Int          @id @default(autoincrement())
+// ===== תיקיות היררכיות פנימיות (Nested Folders) =====
+model CategoryFolder {
+  id             Int              @id @default(autoincrement())
   name           String
   description    String?
-  sortOrder      Int          @default(0)
-  isActive       Boolean      @default(true)
-  mainCategoryId Int
-  mainCategory   MainCategory @relation(fields: [mainCategoryId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  imageUrl       String?          // תמונה/לוגו לתיקייה
+  icon           String?          // שם אייקון/אמוג׳י
+  sortOrder      Int              @default(0)
+  isActive       Boolean          @default(true)
 
-  systems System[]
+  mainCategoryId Int
+  mainCategory   MainCategory     @relation(fields: [mainCategoryId], references: [id], onDelete: Cascade)
+
+  parentId       Int?
+  parent         CategoryFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children       CategoryFolder[] @relation("FolderHierarchy")
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  systems        System[]
+  videos         Video[]
+
+  @@index([mainCategoryId, parentId])
 }
 
 // ===== מערכות/אתרים =====
 model System {
-  id            Int          @id @default(autoincrement())
+  id            Int             @id @default(autoincrement())
   name          String
   description   String?
   url           String
-  imageUrl      String?      // תמונה/לוגו
-  isActive      Boolean      @default(true)
-  sortOrder     Int          @default(0)
-  subCategoryId Int?
-  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  imageUrl      String?         // תמונה/לוגו
+  isActive      Boolean         @default(true)
+  sortOrder     Int             @default(0)
+  tags          String[]        @default([])
+  folderId      Int?
+  folder        CategoryFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   visits        UserVisit[]
 }
@@ -74,8 +86,10 @@ model UserVisit {
   id        Int      @id @default(autoincrement())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  systemId  Int
-  system    System   @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  systemId  Int?
+  system    System?  @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  videoId   Int?
+  video     Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
   visitedAt DateTime @default(now())
 
   @@index([userId, visitedAt])
@@ -97,18 +111,22 @@ model ContactRequest {
 
 // ===== חומרי הטמעה – סרטונים =====
 model Video {
-  id             Int      @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   title          String
   description    String?
-  fileName       String            // שם קובץ הוידאו בשרת (תחת uploads/videos/)
-  thumbnailName  String?           // שם קובץ תמונת thumbnail (תחת uploads/thumbnails/)
-  mimeType       String?           // לדוג׳ video/mp4
-  fileSize       BigInt?           // גודל בבייטים
-  duration       Float?            // אורך בשניות
-  sortOrder      Int      @default(0)
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  fileName       String          // שם קובץ הוידאו בשרת (תחת uploads/videos/)
+  thumbnailName  String?         // שם קובץ תמונת thumbnail (תחת uploads/thumbnails/)
+  mimeType       String?         // לדוג׳ video/mp4
+  fileSize       BigInt?         // גודל בבייטים
+  duration       Float?          // אורך בשניות
+  sortOrder      Int             @default(0)
+  isActive       Boolean         @default(true)
+  tags           String[]        @default([])
+  folderId       Int?
+  folder         CategoryFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  visits         UserVisit[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([sortOrder, createdAt])
 }
@@ -120,4 +138,3 @@ model Notification {
   message   String
   createdAt DateTime @default(now())
 }
-

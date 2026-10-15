@@ -84,6 +84,8 @@ videosRouter.post("/", requireAuth, requireContentOrAdmin, async (req, res, next
       fileSize,
       duration,
       sortOrder,
+      folderId,
+      tags,
     } = req.body as {
       title: string;
       description?: string;
@@ -93,6 +95,8 @@ videosRouter.post("/", requireAuth, requireContentOrAdmin, async (req, res, next
       fileSize?: number;
       duration?: number;
       sortOrder?: number;
+      folderId?: number | null;
+      tags?: string[];
     };
 
     if (!title?.trim()) {
@@ -103,6 +107,8 @@ videosRouter.post("/", requireAuth, requireContentOrAdmin, async (req, res, next
       res.status(400).json({ message: "שם הקובץ הוא שדה חובה" });
       return;
     }
+
+    const cleanedTags = Array.isArray(tags) ? tags.map(t => t.trim()).filter(Boolean) : [];
 
     const video = await prisma.video.create({
       data: {
@@ -115,6 +121,8 @@ videosRouter.post("/", requireAuth, requireContentOrAdmin, async (req, res, next
         fileSize: fileSize != null ? BigInt(fileSize) : undefined,
         duration: duration != null ? duration : undefined,
         sortOrder: sortOrder ?? 0,
+        folderId: folderId ? Number(folderId) : null,
+        tags: cleanedTags,
       },
     });
 
@@ -137,6 +145,8 @@ videosRouter.put("/:id", requireAuth, requireContentOrAdmin, async (req, res, ne
       thumbnailName,
       duration,
       sortOrder,
+      folderId,
+      tags,
       isActive,
     } = req.body as {
       title?: string;
@@ -144,6 +154,8 @@ videosRouter.put("/:id", requireAuth, requireContentOrAdmin, async (req, res, ne
       thumbnailName?: string | null;
       duration?: number;
       sortOrder?: number;
+      folderId?: number | null;
+      tags?: string[];
       isActive?: boolean;
     };
 
@@ -162,6 +174,8 @@ videosRouter.put("/:id", requireAuth, requireContentOrAdmin, async (req, res, ne
       await removeFile(THUMBNAILS_DIR, existing.thumbnailName);
     }
 
+    const cleanedTags = Array.isArray(tags) ? tags.map(t => t.trim()).filter(Boolean) : undefined;
+
     const updated = await prisma.video.update({
       where: { id },
       data: {
@@ -172,6 +186,8 @@ videosRouter.put("/:id", requireAuth, requireContentOrAdmin, async (req, res, ne
         }),
         ...(duration !== undefined && { duration }),
         ...(sortOrder !== undefined && { sortOrder }),
+        ...(folderId !== undefined && { folderId: folderId ? Number(folderId) : null }),
+        ...(cleanedTags !== undefined && { tags: cleanedTags }),
         ...(isActive !== undefined && { isActive }),
       },
     });

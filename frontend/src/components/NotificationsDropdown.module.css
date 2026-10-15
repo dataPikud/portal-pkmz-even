@@ -1,9 +1,11 @@
 .dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
+  left: auto;
   margin-top: 10px;
   width: 350px;
+  max-width: calc(100vw - 32px);
   max-height: 480px;
   background: rgba(11, 17, 33, 0.95);
   backdrop-filter: blur(20px);

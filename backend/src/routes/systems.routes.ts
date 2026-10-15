@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma.js";
 
 export const systemsRouter = Router();
 
-/** GET /api/systems/search?q=... – ציבורי */
+/** GET /api/systems/search?q=... – Search systems by query or tag */
 systemsRouter.get("/search", async (req, res, next) => {
   try {
     const q = (req.query["q"] as string | undefined)?.trim() ?? "";
@@ -18,12 +18,13 @@ systemsRouter.get("/search", async (req, res, next) => {
       where: {
         isActive: true,
         OR: [
-          { name: { contains: q } },
-          { description: { contains: q } },
+          { name: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } },
+          { tags: { has: q } },
         ],
       },
       orderBy: { sortOrder: "asc" },
-      include: { subCategory: { include: { mainCategory: true } } },
+      include: { folder: { include: { mainCategory: true } } },
       take: 20,
     });
 
@@ -33,13 +34,13 @@ systemsRouter.get("/search", async (req, res, next) => {
   }
 });
 
-/** GET /api/systems – ציבורי */
+/** GET /api/systems – Public list of systems */
 systemsRouter.get("/", async (_req, res, next) => {
   try {
     const systems = await prisma.system.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: "asc" },
-      include: { subCategory: { include: { mainCategory: true } } },
+      include: { folder: { include: { mainCategory: true } } },
     });
     res.json({ data: systems });
   } catch (error) {
@@ -47,13 +48,13 @@ systemsRouter.get("/", async (_req, res, next) => {
   }
 });
 
-/** GET /api/systems/:id – ציבורי */
+/** GET /api/systems/:id – Single system */
 systemsRouter.get("/:id", async (req, res, next) => {
   try {
     const id = Number(req.params["id"]);
     const system = await prisma.system.findUnique({
       where: { id },
-      include: { subCategory: { include: { mainCategory: true } } },
+      include: { folder: { include: { mainCategory: true } } },
     });
 
     if (!system) {
@@ -67,17 +68,18 @@ systemsRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-/** POST – admin בלבד */
+/** POST /api/systems – Admin only */
 systemsRouter.post("/", requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    const { name, description, url, imageUrl, sortOrder, subCategoryId } =
+    const { name, description, url, imageUrl, sortOrder, folderId, tags } =
       req.body as {
         name: string;
         description?: string;
         url: string;
         imageUrl?: string;
         sortOrder?: number;
-        subCategoryId?: number;
+        folderId?: number | null;
+        tags?: string[];
       };
 
     if (!name?.trim() || !url?.trim()) {
@@ -85,8 +87,19 @@ systemsRouter.post("/", requireAuth, requireAdmin, async (req, res, next) => {
       return;
     }
 
+    const cleanedTags = Array.isArray(tags) ? tags.map(t => t.trim()).filter(Boolean) : [];
+
     const system = await prisma.system.create({
-      data: { name, description, url, imageUrl, sortOrder: sortOrder ?? 0, subCategoryId },
+      data: {
+        name: name.trim(),
+        description: description ? description.trim() : null,
+        url: url.trim(),
+        imageUrl: imageUrl ? imageUrl.trim() : null,
+        sortOrder: sortOrder ?? 0,
+        folderId: folderId ? Number(folderId) : null,
+        tags: cleanedTags,
+      },
+      include: { folder: { include: { mainCategory: true } } },
     });
     res.status(201).json({ data: system });
   } catch (error) {
@@ -94,24 +107,37 @@ systemsRouter.post("/", requireAuth, requireAdmin, async (req, res, next) => {
   }
 });
 
-/** PUT – admin בלבד */
+/** PUT /api/systems/:id – Admin only */
 systemsRouter.put("/:id", requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const id = Number(req.params["id"]);
-    const { name, description, url, imageUrl, sortOrder, subCategoryId, isActive } =
+    const { name, description, url, imageUrl, sortOrder, folderId, tags, isActive } =
       req.body as {
         name?: string;
         description?: string;
         url?: string;
         imageUrl?: string;
         sortOrder?: number;
-        subCategoryId?: number;
+        folderId?: number | null;
+        tags?: string[];
         isActive?: boolean;
       };
 
+    const cleanedTags = Array.isArray(tags) ? tags.map(t => t.trim()).filter(Boolean) : undefined;
+
     const system = await prisma.system.update({
       where: { id },
-      data: { name, description, url, imageUrl, sortOrder, subCategoryId, isActive },
+      data: {
+        ...(name !== undefined && { name: name.trim() }),
+        ...(description !== undefined && { description: description ? description.trim() : null }),
+        ...(url !== undefined && { url: url.trim() }),
+        ...(imageUrl !== undefined && { imageUrl: imageUrl ? imageUrl.trim() : null }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) }),
+        ...(folderId !== undefined && { folderId: folderId ? Number(folderId) : null }),
+        ...(cleanedTags !== undefined && { tags: cleanedTags }),
+        ...(isActive !== undefined && { isActive }),
+      },
+      include: { folder: { include: { mainCategory: true } } },
     });
     res.json({ data: system });
   } catch (error) {
@@ -119,7 +145,7 @@ systemsRouter.put("/:id", requireAuth, requireAdmin, async (req, res, next) => {
   }
 });
 
-/** DELETE – admin בלבד */
+/** DELETE /api/systems/:id – Admin only */
 systemsRouter.delete("/:id", requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const id = Number(req.params["id"]);

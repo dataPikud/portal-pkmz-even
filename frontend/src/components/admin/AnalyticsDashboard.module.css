@@ -1,0 +1,429 @@
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.topHeaderBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 18px;
+}
+
+.headerInfoText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.realtimeBadge {
+  font-size: 13px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.headerSubText {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.resetBtn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resetBtn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Stats Row */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background: #0f172a;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.statIconBox {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Charts Row */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.chartBox, .leaderboardBox {
+  background: #0f172a;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.boxHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 12px;
+}
+
+.boxHeader h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+/* SVG Chart */
+.svgWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.svgChart {
+  width: 100%;
+  height: 150px;
+  overflow: visible;
+}
+
+.chartDot {
+  fill: #3b82f6;
+  stroke: #ffffff;
+  stroke-width: 2;
+  cursor: pointer;
+  transition: transform 0.2s ease, r 0.2s ease;
+}
+
+.chartDotGroup:hover .chartDot {
+  r: 8;
+  fill: #60a5fa;
+}
+
+.xAxisLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 0 4px;
+}
+
+/* Bar Chart */
+.barsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.barRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.barRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.barMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.barName {
+  font-weight: 700;
+  color: #fff;
+}
+
+.barCount {
+  font-size: 11px;
+  color: #10b981;
+}
+
+.barTrack {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* Leaderboard */
+.usersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.userCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.userAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userSub {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.userBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  padding: 2px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+/* Modal */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modalBody {
+  width: 100%;
+  max-width: 550px;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+}
+
+.modalTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalTitleWrap h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.closeBtn:hover {
+  color: #f87171;
+}
+
+.breakdownContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.systemMetaHeader h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3b82f6;
+  margin: 0 0 4px;
+}
+
+.systemMetaHeader p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.breakdownSubTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.breakdownTable {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.tableHeaderRow, .tableDataRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  font-size: 12px;
+  padding: 6px;
+}
+
+.tableHeaderRow {
+  font-weight: 700;
+  color: var(--muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tableDataRow {
+  color: #fff;
+  align-items: center;
+}
+
+.userCell {
+  font-weight: 700;
+  color: #60a5fa;
+}
+
+.countBadge {
+  font-weight: 700;
+  color: #10b981;
+}

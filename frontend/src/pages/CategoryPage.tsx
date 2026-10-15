@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Star,
   Mail,
@@ -17,14 +17,27 @@ import {
   Server,
   DollarSign,
   BookOpen,
+  Folder as FolderIcon,
+  ChevronLeft,
+  Film,
+  Play,
+  Pencil,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useFavoritesStore } from '../store/useFavoritesStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { useEditModeStore } from '../store/useEditModeStore';
 import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
 import { PageLoader } from '../components/PageLoader';
+import { TagSearchModal } from '../components/TagSearchModal';
+import { VideoModal } from '../components/VideoModal';
+import { SystemModal } from '../components/admin/SystemModal';
+import { FolderModal } from '../components/admin/FolderModal';
 import { useSmartLoader } from '../hooks/useSmartLoader';
-import type { MainCategory, System } from '../types';
+import type { MainCategory, System, CategoryFolder, Video as VideoType } from '../types';
 import styles from './CategoryPage.module.css';
 
 // Dynamic fallback icons & gradient backdrops for systems without an imageUrl
@@ -76,7 +89,15 @@ function getSystemFallbackIcon(name: string) {
   return { Icon: Globe, gradient: 'linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(3, 105, 161, 0.2) 100%)', color: '#0ea5e9' };
 }
 
-function SystemCard({ system, categoryColor }: { system: System; categoryColor: string }) {
+interface SystemCardProps {
+  system: System;
+  onTagClick: (tag: string) => void;
+  isEditMode?: boolean;
+  onEdit?: (sys: System) => void;
+  onDelete?: (id: number) => void;
+}
+
+function SystemCard({ system, onTagClick, isEditMode, onEdit, onDelete }: SystemCardProps) {
   const favorites = useFavoritesStore((s) => s.favorites);
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
   const isFav = favorites.includes(system.id);
@@ -98,41 +119,83 @@ function SystemCard({ system, categoryColor }: { system: System; categoryColor: 
     <article
       className={`${styles.card} ${isFav ? styles.cardFav : ''}`}
       onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      style={{ '--card-glow': categoryColor } as React.CSSProperties}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick();
-        }
-      }}
-      aria-label={`פתח את ${system.name}`}
     >
-      {/* Star button on top right of the card */}
+      {/* Top right favorite star button */}
       <button
         type="button"
-        className={`${styles.starBtn} ${isFav ? styles.starFavActive : ''}`}
+        className={`${styles.favStarBtn} ${isFav ? styles.starFavActive : ''}`}
         onClick={handleToggleStar}
-        aria-label={isFav ? `הסר את ${system.name} ממועדפים` : `הוסף את ${system.name} למועדפים`}
         title={isFav ? 'הסר ממועדפים' : 'הוסף למועדפים'}
       >
-        <Star size={18} fill={isFav ? 'currentColor' : 'none'} />
+        <Star
+          size={18}
+          fill={isFav ? '#f59e0b' : 'none'}
+          color={isFav ? '#f59e0b' : '#94a3b8'}
+        />
       </button>
 
-      {/* App logo/fallback icon in glass circular box */}
-      <div className={styles.imageContainer} style={{ background: system.imageUrl ? undefined : fallback.gradient }}>
+      {/* Admin Quick Action Overlay when Edit Mode is ON */}
+      {isEditMode && (
+        <div className={styles.adminCardOverlay}>
+          {onEdit && (
+            <button
+              className={styles.adminActionBtn}
+              onClick={e => { e.stopPropagation(); onEdit(system); }}
+              title="ערוך מערכת"
+            >
+              <Pencil size={13} />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              className={`${styles.adminActionBtn} ${styles.adminDeleteBtn}`}
+              onClick={e => { e.stopPropagation(); onDelete(system.id); }}
+              title="מחק מערכת"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Top Center Thumbnail / Icon Box */}
+      <div
+        className={styles.cardIconBox}
+        style={{
+          background: system.imageUrl ? 'transparent' : fallback.gradient,
+        }}
+      >
         {system.imageUrl ? (
-          <img src={system.imageUrl} alt={system.name} className={styles.systemImg} />
+          <img
+            src={system.imageUrl}
+            alt={system.name}
+            className={styles.cardImage}
+          />
         ) : (
-          <FallbackIcon size={28} color={fallback.color} aria-hidden="true" />
+          <FallbackIcon size={26} color={fallback.color} />
         )}
       </div>
 
-      {/* App name and description */}
-      <h3 className={styles.cardName}>{system.name}</h3>
+      {/* Card Content */}
+      <h3 className={styles.cardTitle}>{system.name}</h3>
       {system.description && (
         <p className={styles.cardDesc}>{system.description}</p>
+      )}
+
+      {/* Tags Chips */}
+      {system.tags && system.tags.length > 0 && (
+        <div className={styles.tagWrap} onClick={e => e.stopPropagation()}>
+          {system.tags.map(tag => (
+            <span
+              key={tag}
+              className={styles.tagPill}
+              onClick={() => onTagClick(tag)}
+              title={`סנן לפי תגית #${tag}`}
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
       )}
     </article>
   );
@@ -140,84 +203,146 @@ function SystemCard({ system, categoryColor }: { system: System; categoryColor: 
 
 export function CategoryPage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const activeFolderId = searchParams.get('folder') ? Number(searchParams.get('folder')) : null;
+
   const [category, setCategory] = useState<MainCategory | null>(null);
+  const [currentFolder, setCurrentFolder] = useState<CategoryFolder | null>(null);
+  const [subFolders, setSubFolders] = useState<CategoryFolder[]>([]);
+  const [systems, setSystems] = useState<System[]>([]);
+  const [videos, setVideos] = useState<VideoType[]>([]);
+
+  const [allFoldersTree, setAllFoldersTree] = useState<CategoryFolder[]>([]);
+  const [mainCategories, setMainCategories] = useState<MainCategory[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-
-  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilterId, setSelectedFilterId] = useState<number | string | null>(null);
+  const [activeTagModal, setActiveTagModal] = useState<string | null>(null);
+  const [activeVideoModal, setActiveVideoModal] = useState<VideoType | null>(null);
 
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    // Reset search & filter on category change
-    setSearchQuery('');
-    setSelectedFilterId(null);
+  // In-Context Edit Mode
+  const user = useAuthStore(s => s.user);
+  const isEditMode = useEditModeStore(s => s.isEditMode);
+  const canManageContent = Boolean(user?.isAdmin || user?.isContentAdmin);
 
-    void api.mainCategories.get(Number(id))
-      .then((data) => {
-        setCategory(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
-  }, [id]);
-
-  // List of all systems in this category
-  const allSystems = useMemo(() => {
-    if (!category) return [];
-    return (category.subCategories ?? []).flatMap((sub) => sub.systems ?? []);
-  }, [category]);
-
-  // Filtered systems based on search and subcategory filters
-  const filteredSystems = useMemo(() => {
-    let result = allSystems;
-
-    // Filter by subcategory
-    if (selectedFilterId !== null) {
-      result = result.filter(sys => sys.subCategoryId === Number(selectedFilterId));
-    }
-
-    // Filter by search query
-    const q = searchQuery.trim().toLowerCase();
-    if (q) {
-      result = result.filter(
-        sys =>
-          sys.name.toLowerCase().includes(q) ||
-          (sys.description ?? '').toLowerCase().includes(q)
-      );
-    }
-
-    return result;
-  }, [allSystems, selectedFilterId, searchQuery]);
-
-  const filterOptions = useMemo(() => {
-    if (!category) return [];
-    return (category.subCategories ?? []).map(sub => ({
-      id: sub.id,
-      name: sub.name
-    }));
-  }, [category]);
+  const [systemModalTarget, setSystemModalTarget] = useState<System | null | 'NEW'>(null);
+  const [folderModalTarget, setFolderModalTarget] = useState<CategoryFolder | null | 'NEW'>(null);
 
   const { showLoader } = useSmartLoader(loading, { delayMs: 2000, minVisibleMs: 5000 });
+
+  const loadData = () => {
+    if (!id) return;
+    setLoading(true);
+    setError(false);
+    const categoryId = Number(id);
+
+    Promise.all([
+      api.mainCategories.list(),
+      api.folders.tree(),
+    ]).then(([cats, tree]) => {
+      setMainCategories(cats);
+      setAllFoldersTree(tree);
+    });
+
+    if (activeFolderId) {
+      Promise.all([
+        api.mainCategories.get(categoryId),
+        api.folders.get(activeFolderId),
+      ])
+        .then(([catData, folderData]) => {
+          setCategory(catData);
+          setCurrentFolder(folderData);
+          setSubFolders(folderData.children ?? []);
+          setSystems(folderData.systems ?? []);
+          setVideos(folderData.videos ?? []);
+        })
+        .catch(() => setError(true))
+        .finally(() => setLoading(false));
+    } else {
+      api.mainCategories.get(categoryId)
+        .then((catData) => {
+          setCategory(catData);
+          setCurrentFolder(null);
+          setSubFolders(catData.folders ?? []);
+          setSystems(catData.systems ?? []);
+          setVideos(catData.videos ?? []);
+        })
+        .catch(() => setError(true))
+        .finally(() => setLoading(false));
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [id, activeFolderId]);
+
+  async function handleDeleteSystem(sysId: number) {
+    if (!confirm('האם למחוק את המערכת?')) return;
+    try {
+      await api.systems.delete(sysId);
+      loadData();
+    } catch {
+      alert('מחיקת המערכת נכשלה');
+    }
+  }
+
+  async function handleDeleteFolder(foldId: number) {
+    if (!confirm('האם למחוק את התיקייה? (כל תת-התיקיות יימחקו)')) return;
+    try {
+      await api.folders.delete(foldId);
+      loadData();
+    } catch {
+      alert('מחיקת התיקייה נכשלה');
+    }
+  }
+
+  const filteredSystems = useMemo(() => {
+    if (!searchQuery.trim()) return systems;
+    const q = searchQuery.trim().toLowerCase();
+    return systems.filter(
+      s => s.name.toLowerCase().includes(q) ||
+        (s.description ?? '').toLowerCase().includes(q) ||
+        s.tags.some(t => t.toLowerCase().includes(q))
+    );
+  }, [systems, searchQuery]);
+
+  const filteredFolders = useMemo(() => {
+    if (!searchQuery.trim()) return subFolders;
+    const q = searchQuery.trim().toLowerCase();
+    return subFolders.filter(
+      f => f.name.toLowerCase().includes(q) || (f.description ?? '').toLowerCase().includes(q)
+    );
+  }, [subFolders, searchQuery]);
+
+  // Construct Breadcrumbs Trail
+  const breadcrumbs = useMemo(() => {
+    if (!category) return [];
+    const crumbs = [{ label: category.name, onClick: () => setSearchParams({}) }];
+    if (currentFolder && currentFolder.breadcrumbs) {
+      currentFolder.breadcrumbs.forEach((b) => {
+        crumbs.push({
+          label: b.name,
+          onClick: () => setSearchParams({ folder: String(b.id) }),
+        });
+      });
+    }
+    return crumbs;
+  }, [category, currentFolder, setSearchParams]);
 
   if (showLoader) {
     return (
       <div className={styles.layoutContainer}>
         <Sidebar />
         <div className={styles.contentArea}>
-          <PageLoader fullScreen message="טוען את המערכות..." />
+          <PageLoader fullScreen message="טוען את המערכות והתיקיות..." />
         </div>
       </div>
     );
   }
 
-  // Fast load window (loading is still true, but showLoader is false)
   if (loading) {
     return (
       <div className={styles.layoutContainer}>
@@ -245,45 +370,192 @@ export function CategoryPage() {
     );
   }
 
-  const categoryColor = category.color || '#3b82f6';
-
   return (
     <div className={styles.layoutContainer}>
-      {/* Right-aligned Sidebar */}
       <Sidebar />
 
-      {/* Left Content Area */}
       <div className={styles.contentArea}>
-        {/* Navbar */}
         <Navbar
-          breadcrumbs={[{ label: category.name }]}
+          breadcrumbs={breadcrumbs}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          searchPlaceholder="חיפוש במדור..."
-          filterOptions={filterOptions}
-          selectedFilterId={selectedFilterId}
-          onFilterSelect={setSelectedFilterId}
+          searchPlaceholder="חיפוש בתיקייה או לפי תג..."
         />
 
-        {/* Main Content Grid */}
         <main className={styles.mainContent}>
-          {filteredSystems.length === 0 ? (
-            <div className={styles.empty}>
-              <p>לא נמצאו מערכות מתאימות</p>
+          {/* Action Bar when Edit Mode is ON */}
+          {isEditMode && canManageContent && (
+            <div className={styles.inContextActionBar}>
+              <div className={styles.actionBarTitle}>
+                <span>✏️ מצב עריכה ישיר פעיל בתיקייה זו</span>
+              </div>
+              <div className={styles.actionBarBtns}>
+                <button
+                  className={styles.addContextBtn}
+                  onClick={() => setSystemModalTarget('NEW')}
+                >
+                  <Plus size={14} /> הוסף מערכת לתיקייה זו
+                </button>
+                <button
+                  className={`${styles.addContextBtn} ${styles.addFolderBtn}`}
+                  onClick={() => setFolderModalTarget('NEW')}
+                >
+                  <Plus size={14} /> הוסף תת-תיקייה
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className={styles.cardsGrid}>
-              {filteredSystems.map((sys) => (
-                <SystemCard
-                  key={sys.id}
-                  system={sys}
-                  categoryColor={categoryColor}
-                />
-              ))}
+          )}
+
+          {/* Folders Section */}
+          {filteredFolders.length > 0 && (
+            <section className={styles.sectionWrap}>
+              <div className={styles.sectionHeader}>
+                <FolderIcon size={18} color="#f59e0b" />
+                <h2 className={styles.sectionTitle}>תיקיות ({filteredFolders.length})</h2>
+              </div>
+              <div className={styles.foldersGrid}>
+                {filteredFolders.map(folder => {
+                  const itemCount = (folder._count?.systems ?? 0) + (folder._count?.videos ?? 0) + (folder._count?.children ?? 0);
+                  return (
+                    <div
+                      key={folder.id}
+                      className={styles.folderCard}
+                      onClick={() => setSearchParams({ folder: String(folder.id) })}
+                    >
+                      {isEditMode && canManageContent && (
+                        <div className={styles.adminCardOverlay}>
+                          <button
+                            className={styles.adminActionBtn}
+                            onClick={e => { e.stopPropagation(); setFolderModalTarget(folder); }}
+                            title="ערוך תיקייה"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            className={`${styles.adminActionBtn} ${styles.adminDeleteBtn}`}
+                            onClick={e => { e.stopPropagation(); handleDeleteFolder(folder.id); }}
+                            title="מחק תיקייה"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      )}
+
+                      <div className={styles.folderIconWrap}>
+                        {folder.imageUrl ? (
+                          <img src={folder.imageUrl} alt={folder.name} className={styles.folderImg} />
+                        ) : (
+                          <FolderIcon size={32} color="#f59e0b" />
+                        )}
+                      </div>
+                      <div className={styles.folderInfo}>
+                        <h3 className={styles.folderName}>{folder.name}</h3>
+                        {folder.description && <p className={styles.folderDesc}>{folder.description}</p>}
+                      </div>
+                      {itemCount > 0 && (
+                        <span className={styles.itemCountBadge}>{itemCount} פריטים</span>
+                      )}
+                      <ChevronLeft size={18} className={styles.folderArrow} />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Systems Section */}
+          {filteredSystems.length > 0 && (
+            <section className={styles.sectionWrap}>
+              <div className={styles.sectionHeader}>
+                <Globe size={18} color="#3b82f6" />
+                <h2 className={styles.sectionTitle}>מערכות ואתרים ({filteredSystems.length})</h2>
+              </div>
+              <div className={styles.cardsGrid}>
+                {filteredSystems.map(sys => (
+                  <SystemCard
+                    key={sys.id}
+                    system={sys}
+                    isEditMode={isEditMode && canManageContent}
+                    onEdit={s => setSystemModalTarget(s)}
+                    onDelete={handleDeleteSystem}
+                    onTagClick={tag => setActiveTagModal(tag)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Videos Section */}
+          {videos.length > 0 && (
+            <section className={styles.sectionWrap}>
+              <div className={styles.sectionHeader}>
+                <Film size={18} color="#a855f7" />
+                <h2 className={styles.sectionTitle}>סרטוני הדרכה ({videos.length})</h2>
+              </div>
+              <div className={styles.cardsGrid}>
+                {videos.map(v => (
+                  <div
+                    key={v.id}
+                    className={styles.card}
+                    onClick={() => setActiveVideoModal(v)}
+                    style={{ minHeight: 180, cursor: 'pointer' }}
+                  >
+                    <div className={styles.cardIconBox} style={{ background: 'rgba(168, 85, 247, 0.15)' }}>
+                      <Play size={24} color="#a855f7" />
+                    </div>
+                    <h3 className={styles.cardTitle}>{v.title}</h3>
+                    {v.description && <p className={styles.cardDesc}>{v.description}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {filteredSystems.length === 0 && filteredFolders.length === 0 && videos.length === 0 && (
+            <div className={styles.empty}>
+              <p>אין תוכן בתיקייה זו עדיין.</p>
             </div>
           )}
         </main>
       </div>
+
+      {/* Modals for In-Context Editing */}
+      {systemModalTarget && (
+        <SystemModal
+          system={systemModalTarget === 'NEW' ? null : systemModalTarget}
+          defaultFolderId={activeFolderId}
+          folders={allFoldersTree}
+          mainCategories={mainCategories}
+          onClose={() => setSystemModalTarget(null)}
+          onSave={loadData}
+        />
+      )}
+
+      {folderModalTarget && (
+        <FolderModal
+          folder={folderModalTarget === 'NEW' ? null : folderModalTarget}
+          defaultParentId={activeFolderId}
+          defaultMainCategoryId={category ? category.id : Number(id)}
+          folders={allFoldersTree}
+          mainCategories={mainCategories}
+          onClose={() => setFolderModalTarget(null)}
+          onSave={loadData}
+        />
+      )}
+
+      {activeTagModal && (
+        <TagSearchModal
+          tag={activeTagModal}
+          onClose={() => setActiveTagModal(null)}
+        />
+      )}
+
+      {activeVideoModal && (
+        <VideoModal
+          video={activeVideoModal}
+          onClose={() => setActiveVideoModal(null)}
+        />
+      )}
     </div>
   );
 }
